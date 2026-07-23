@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en" class="dark h-full">
+<html lang="en" class="dark h-full w-full overflow-hidden select-none">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A Secret Gift For You ❤️</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>A Magical Proposal For You ❤️</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -14,12 +14,15 @@
                 extend: {
                     colors: {
                         rose: {
+                            300: '#fde047',
                             400: '#fb7185',
                             500: '#f43f5e',
                             600: '#e11d48',
+                            800: '#9f1239',
                             900: '#881337',
                         },
                         gold: {
+                            100: '#fef9c3',
                             200: '#fef08a',
                             300: '#fde047',
                             400: '#facc15',
@@ -42,67 +45,223 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- External Libraries (CDNs) -->
+    <!-- Libraries: Three.js, GSAP, Canvas Confetti, Font Awesome -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Custom Style Sheet -->
-    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sar: env(safe-area-inset-right, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
+            --sal: env(safe-area-inset-left, 0px);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #020005;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Safe Area Padding Utilities */
+        .safe-pt { padding-top: max(1rem, var(--sat)); }
+        .safe-pb { padding-bottom: max(1rem, var(--sab)); }
+        .safe-px { padding-left: max(1rem, var(--sal)); padding-right: max(1rem, var(--sar)); }
+
+        /* Fluid Responsive Typography */
+        .fluid-title { font-size: clamp(1.5rem, 4vw + 1rem, 3.5rem); }
+        .fluid-subtitle { font-size: clamp(0.875rem, 1.5vw + 0.5rem, 1.35rem); }
+        .fluid-body { font-size: clamp(0.75rem, 1vw + 0.4rem, 1rem); }
+        .fluid-script { font-size: clamp(2.5rem, 6vw + 1rem, 5.5rem); }
+
+        /* Glassmorphism Panels */
+        .glass-panel {
+            background: rgba(18, 4, 22, 0.78);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(250, 204, 21, 0.28);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 
+                        inset 0 1px 1px rgba(255, 255, 255, 0.25),
+                        0 0 35px rgba(244, 63, 94, 0.18);
+        }
+
+        .glass-btn {
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.85), rgba(225, 29, 72, 0.98));
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 25px rgba(225, 29, 72, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .glass-btn:not(:disabled):active, .glass-btn:not(:disabled):hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 14px 35px rgba(225, 29, 72, 0.8), 0 0 30px rgba(250, 204, 21, 0.6);
+        }
+
+        .glass-btn:disabled {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            box-shadow: none !important;
+            color: rgba(255, 255, 255, 0.35) !important;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Moving Royal Silk Gradient Background */
+        .silk-bg {
+            background: radial-gradient(circle at 40% 35%, #2d0022, #0d001a, #020005);
+            background-size: 200% 200%;
+            animation: silkMove 24s ease infinite alternate;
+        }
+
+        @keyframes silkMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .text-glow {
+            text-shadow: 0 0 20px rgba(244, 63, 94, 0.9), 0 0 40px rgba(244, 63, 94, 0.5);
+        }
+
+        .text-glow-gold {
+            text-shadow: 0 0 20px rgba(250, 204, 21, 0.9), 0 0 40px rgba(250, 204, 21, 0.5);
+        }
+
+        /* Sparkle Cursor Trail */
+        .cursor-particle {
+            pointer-events: none;
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,230,240,1) 0%, rgba(244,63,94,0) 80%);
+            animation: particleFade 0.8s forwards ease-out;
+            z-index: 9999;
+        }
+
+        @keyframes particleFade {
+            0% { transform: scale(1) translate(0, 0); opacity: 1; }
+            100% { transform: scale(0) translate(var(--dx), var(--dy)); opacity: 0; }
+        }
+
+        .flower-tooltip {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translate(-50%, -130%);
+        }
+
+        /* Interactive 3D Envelope Styling */
+        .envelope-wrapper {
+            perspective: 1000px;
+        }
+        .envelope {
+            width: 220px;
+            height: 140px;
+            position: relative;
+            background: #9f1239;
+            border-radius: 8px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(244,63,94,0.4);
+            cursor: pointer;
+            transition: transform 0.5s ease;
+        }
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 110px solid transparent;
+            border-right: 110px solid transparent;
+            border-top: 80px solid #be123c;
+            transform-origin: top;
+            transition: transform 0.6s ease;
+            z-index: 3;
+        }
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+        .envelope-paper {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            right: 15px;
+            height: 110px;
+            background: #fffdfa;
+            border-radius: 6px;
+            padding: 12px;
+            color: #881337;
+            font-family: 'Playfair Display', serif;
+            font-size: 0.8rem;
+            transition: transform 0.6s ease;
+            z-index: 2;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+        .envelope.open .envelope-paper {
+            transform: translateY(-80px) scale(1.05);
+            z-index: 4;
+        }
+    </style>
 </head>
-<body class="h-full w-full silk-bg relative text-white overflow-hidden select-none">
+<body class="h-full w-full silk-bg relative text-white overflow-hidden">
 
-    <!-- Canvas Layer 1: Stars, Full Moon, Atmospheric Mist & Flying Hearts -->
+    <!-- Layer 1: Parallax Moonlit Garden Sky, Fog, Fireflies & Floating Petals Canvas -->
     <canvas id="bgCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
 
-    <!-- Canvas Layer 2: Three.js 3D Scene (Proposal Arch, Couple, Bouquet, Butterflies) -->
+    <!-- Layer 2: Three.js 3D WebGL Canvas (Bouquet, Proposal Arch, Couple Silhouette, Finale Heart) -->
     <canvas id="threeCanvas" class="fixed inset-0 z-10 cursor-grab active:cursor-grabbing"></canvas>
 
-    <!-- Tooltip for Interactive 3D Flowers -->
+    <!-- Hover/Tap Tooltip for Interactive Flowers -->
     <div id="flowerTooltip" class="flower-tooltip z-40 glass-panel px-4 py-2 rounded-full border border-amber-300/40 text-center pointer-events-none">
         <span id="tooltipName" class="font-serif font-bold text-amber-200 block text-xs sm:text-sm"></span>
         <span id="tooltipMeaning" class="text-[10px] sm:text-xs text-pink-100/90 italic"></span>
     </div>
 
-    <!-- UI Overlay Container -->
-    <div id="uiLayer" class="fixed inset-0 z-20 pointer-events-none flex flex-col justify-between p-4 sm:p-8">
+    <!-- UI Overlay Layer -->
+    <div id="uiLayer" class="fixed inset-0 z-20 pointer-events-none flex flex-col justify-between safe-pt safe-pb safe-px">
         
-        <!-- Header Controls -->
+        <!-- Header Controls (Music, Sound FX Toggle, Our Moment Counter) -->
         <header class="w-full flex justify-between items-center pointer-events-auto">
             <div class="flex items-center gap-2 glass-panel px-3.5 py-1.5 rounded-full border-amber-300/30">
                 <i class="fa-solid fa-sparkles text-amber-300 text-xs animate-pulse"></i>
-                <span class="font-serif tracking-widest text-[11px] uppercase text-amber-100/90 font-medium">For My Forever Love</span>
+                <span id="ourMomentClock" class="font-serif tracking-widest text-[10px] sm:text-xs uppercase text-amber-100/90 font-medium">Our Moment: 00:00:00</span>
             </div>
 
             <div class="flex items-center gap-2">
-                <button id="birthdayVoiceBtn" onclick="playBirthdayVoice()" class="hidden glass-panel px-3 py-1.5 rounded-full text-xs text-amber-200 hover:text-white transition-all flex items-center gap-1.5 border-amber-300/30">
-                    <i class="fa-solid fa-cake-candles text-amber-300"></i>
-                    <span class="hidden sm:inline">Birthday Melody</span>
-                </button>
+                <!-- Volume Control Floating Slider -->
+                <div id="volumeControlBox" class="hidden glass-panel px-3 py-1.5 rounded-full border-amber-300/30 flex items-center gap-2">
+                    <i class="fa-solid fa-volume-low text-xs text-amber-200"></i>
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.3" class="w-16 sm:w-20 accent-rose-500 cursor-pointer">
+                </div>
+
                 <button id="audioToggleBtn" class="hidden glass-panel w-10 h-10 rounded-full flex items-center justify-center text-rose-300 hover:text-white transition-all active:scale-95 border-amber-300/30">
                     <i id="audioIcon" class="fa-solid fa-music text-sm"></i>
                 </button>
             </div>
         </header>
 
-        <!-- MAIN SCENE CONTAINER: Side Panel on Desktop, Bottom Dock on Mobile -->
-        <main class="w-full max-w-7xl mx-auto my-auto flex flex-col md:flex-row items-center justify-between pointer-events-none h-full max-h-[85vh]">
+        <!-- MAIN RESPONSIVE CONTAINER: Side Panel on Desktop/Laptop, Bottom Card on Mobile/Tablet -->
+        <main class="w-full max-w-7xl mx-auto my-auto flex flex-col md:flex-row items-center justify-between pointer-events-none">
             
-            <!-- Left Spacer: Leaves 3D Bouquet & Couple completely unblocked on Desktop -->
+            <!-- Left Side Spacer for Desktop 3D Scene Visibility -->
             <div class="hidden md:block w-1/2 lg:w-7/12"></div>
 
-            <!-- Right Floating Glass Card Panel -->
+            <!-- UI Glass Card Floating Panel -->
             <div class="w-full md:w-5/12 lg:w-4/12 max-w-md pointer-events-auto my-auto">
                 
-                <!-- START SCREEN -->
+                <!-- START SCREEN / UNBOX GIFT -->
                 <div id="startScreen" class="glass-panel rounded-[2rem] p-6 sm:p-8 text-center transition-all duration-700">
                     <div class="text-4xl sm:text-5xl mb-3 text-rose-400 animate-pulse">♡</div>
-                    <h2 class="font-serif text-xl sm:text-2xl mb-2 text-white tracking-wide">A Secret Gift For You</h2>
-                    <p class="text-pink-100/80 text-xs sm:text-sm mb-6 leading-relaxed font-light">"Tap below to unwrap your special romantic surprise."</p>
-                    <button id="startBtn" class="glass-btn px-8 py-3.5 rounded-full text-white font-medium tracking-wide text-xs sm:text-sm flex items-center justify-center gap-3 mx-auto group active:scale-95 w-full sm:w-auto">
+                    <h2 class="font-serif fluid-title font-semibold mb-2 text-white tracking-wide">A Secret Gift For You</h2>
+                    <p class="text-pink-100/80 fluid-body mb-6 leading-relaxed font-light">"Tap below to unwrap your special romantic surprise."</p>
+                    <button id="startBtn" class="glass-btn px-8 py-3.5 rounded-full text-white font-medium tracking-wide fluid-body flex items-center justify-center gap-3 mx-auto group active:scale-95">
                         <span>Open My Heart ❤️</span>
                         <i class="fa-solid fa-arrow-right text-xs group-hover:translate-x-1 transition-transform"></i>
                     </button>
@@ -111,70 +270,79 @@
                 <!-- SCENE 1: Welcome -->
                 <div id="scene1" class="scene-card hidden glass-panel rounded-[2rem] p-6 sm:p-8 text-center">
                     <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene I</span>
-                    <h1 class="font-serif text-2xl sm:text-3xl font-normal text-glow mb-2">Hello Beautiful ❤️</h1>
-                    <p class="text-pink-100/90 text-xs sm:text-sm leading-relaxed mb-6 font-light">"I created this royal enchanted garden just for you."</p>
-                    <button onclick="goToScene(2)" class="glass-btn px-7 py-3 rounded-full text-xs sm:text-sm font-medium tracking-wide w-full sm:w-auto">Continue Journey</button>
+                    <h1 class="font-serif fluid-title font-normal text-glow mb-2">Hello Beautiful ❤️</h1>
+                    <p class="text-pink-100/90 fluid-body leading-relaxed mb-6 font-light">"I created this royal enchanted garden just for you."</p>
+                    <button onclick="goToScene(2)" class="glass-btn px-7 py-3 rounded-full fluid-body font-medium tracking-wide">Continue Journey</button>
                 </div>
 
-                <!-- SCENE 2: Bouquet -->
+                <!-- SCENE 2: Bouquet Reveal -->
                 <div id="scene2" class="scene-card hidden glass-panel rounded-[2rem] p-6 sm:p-8 text-center">
                     <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene II</span>
-                    <h2 class="font-serif text-xl sm:text-2xl text-glow mb-2">These Flowers Are For You 🌹</h2>
-                    <p class="text-pink-100/90 text-xs sm:text-sm leading-relaxed mb-6 font-light">"If distance keeps me away today... Let these flowers hug you for me!"</p>
-                    <button onclick="goToScene(3)" class="glass-btn px-7 py-3 rounded-full text-xs sm:text-sm font-medium tracking-wide w-full sm:w-auto">Explore Flower Meanings</button>
+                    <h2 class="font-serif fluid-title text-glow mb-2">These Flowers Are For You 🌹</h2>
+                    <p class="text-pink-100/90 fluid-body leading-relaxed mb-6 font-light">"If distance keeps me away today... Let these flowers hug you for me!"</p>
+                    <button onclick="goToScene(3)" class="glass-btn px-7 py-3 rounded-full fluid-body font-medium tracking-wide">Explore Flower Meanings</button>
                 </div>
 
-                <!-- SCENE 3: Flower Meanings & Love Letters -->
+                <!-- SCENE 3: Flower Meanings -->
                 <div id="scene3" class="scene-card hidden glass-panel rounded-[2rem] p-5 sm:p-6 text-center">
                     <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene III</span>
-                    <h2 class="font-serif text-xl sm:text-2xl text-glow-gold mb-1">Every Flower Has A Meaning</h2>
-                    <p class="text-pink-100/80 text-[11px] sm:text-xs mb-4">Tap all floating envelopes on screen to unlock the next button!</p>
+                    <h2 class="font-serif fluid-title text-glow-gold mb-1">Every Flower Has A Meaning</h2>
+                    <p class="text-pink-100/80 text-[11px] sm:text-xs mb-4">Tap on any flower in the 3D bouquet or tap continue to read my letters!</p>
                     
                     <div class="grid grid-cols-2 gap-2 text-left mb-5 text-[11px] sm:text-xs">
                         <div class="glass-panel p-2 rounded-xl flex items-center gap-2 border-rose-500/30">
-                            <span class="w-2 h-2 rounded-full bg-red-500 shadow-lg shadow-red-500/50"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 shadow-lg shadow-red-500/50"></span>
                             <div><strong class="text-red-300">Red Rose:</strong> "I Love You"</div>
                         </div>
                         <div class="glass-panel p-2 rounded-xl flex items-center gap-2 border-pink-500/30">
-                            <span class="w-2 h-2 rounded-full bg-pink-400 shadow-lg shadow-pink-400/50"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-pink-400 shadow-lg shadow-pink-400/50"></span>
                             <div><strong class="text-pink-300">Pink Rose:</strong> "Thank You"</div>
                         </div>
                         <div class="glass-panel p-2 rounded-xl flex items-center gap-2 border-white/30">
-                            <span class="w-2 h-2 rounded-full bg-white shadow-lg shadow-white/50"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-white shadow-lg shadow-white/50"></span>
                             <div><strong class="text-white">White Rose:</strong> "Forever"</div>
                         </div>
                         <div class="glass-panel p-2 rounded-xl flex items-center gap-2 border-amber-400/30">
-                            <span class="w-2 h-2 rounded-full bg-amber-300 shadow-lg shadow-amber-300/50"></span>
-                            <div><strong class="text-amber-200">Tulip:</strong> "My Heart Is Yours"</div>
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-300 shadow-lg shadow-amber-300/50"></span>
+                            <div><strong class="text-amber-200">Tulip:</strong> "Heart Is Yours"</div>
                         </div>
                     </div>
 
-                    <button id="scene3NextBtn" disabled onclick="goToScene(4)" class="glass-btn px-7 py-3 rounded-full text-xs sm:text-sm font-medium tracking-wide w-full sm:w-auto">
+                    <button onclick="goToScene(4)" class="glass-btn px-7 py-3 rounded-full fluid-body font-medium tracking-wide">Read My Love Notes</button>
+                </div>
+
+                <!-- SCENE 4: Love Letters Discovery (Envelope Progress) -->
+                <div id="scene4" class="scene-card hidden glass-panel rounded-[2rem] p-5 sm:p-6 text-center">
+                    <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene IV</span>
+                    <h2 class="font-serif fluid-title text-glow-gold mb-1">Whispers From My Heart</h2>
+                    <p class="text-pink-100/80 text-[11px] sm:text-xs mb-4">Tap each floating letter envelope on screen to unlock the next button!</p>
+                    
+                    <button id="scene4NextBtn" disabled onclick="goToScene(5)" class="glass-btn px-7 py-3 rounded-full fluid-body font-medium tracking-wide">
                         Open all message notes (0/6)
                     </button>
                 </div>
 
-                <!-- SCENE 4: Close Your Eyes (Proposal) -->
-                <div id="scene4" class="scene-card hidden glass-panel rounded-[2rem] p-6 sm:p-8 text-center">
-                    <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene IV</span>
-                    <h2 class="font-serif text-xl sm:text-2xl text-glow mb-2">Close Your Eyes...</h2>
-                    <p class="text-pink-100/90 text-xs sm:text-sm leading-relaxed mb-6 font-light italic">"Imagine I'm standing beside you in this moonlit garden... Holding these flowers... Smiling into your eyes."</p>
-                    <button onclick="goToScene(5)" class="glass-btn px-7 py-3 rounded-full text-xs sm:text-sm font-medium tracking-wide w-full sm:w-auto">One Final Surprise</button>
-                </div>
-
-                <!-- SCENE 5: Final Message -->
+                <!-- SCENE 5: Close Your Eyes -->
                 <div id="scene5" class="scene-card hidden glass-panel rounded-[2rem] p-6 sm:p-8 text-center">
                     <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene V</span>
-                    <h2 class="font-serif text-xl sm:text-2xl text-glow-gold mb-2">This Bouquet Will Never Fade</h2>
-                    <p class="text-pink-100/90 text-xs sm:text-sm leading-relaxed mb-6 font-light">"Real flowers wilt... But my feelings for you never will."</p>
-                    <button onclick="triggerGrandFinale()" class="glass-btn px-9 py-3.5 rounded-full text-xs sm:text-sm font-semibold tracking-wide text-glow bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 animate-pulse w-full sm:w-auto">
+                    <h2 class="font-serif fluid-title text-glow mb-2">Close Your Eyes...</h2>
+                    <p class="text-pink-100/90 fluid-body leading-relaxed mb-6 font-light italic">"Imagine I'm standing beside you in this moonlit garden... Holding these flowers... Smiling into your eyes."</p>
+                    <button onclick="goToScene(6)" class="glass-btn px-7 py-3 rounded-full fluid-body font-medium tracking-wide">One Final Surprise</button>
+                </div>
+
+                <!-- SCENE 6: Unfading Bouquet -->
+                <div id="scene6" class="scene-card hidden glass-panel rounded-[2rem] p-6 sm:p-8 text-center">
+                    <span class="text-[10px] uppercase tracking-widest text-amber-300/80 mb-1 block font-semibold">Scene VI</span>
+                    <h2 class="font-serif fluid-title text-glow-gold mb-2">This Bouquet Will Never Fade</h2>
+                    <p class="text-pink-100/90 fluid-body leading-relaxed mb-6 font-light">"Real flowers wilt... But my feelings for you never will."</p>
+                    <button onclick="triggerGrandFinale()" class="glass-btn px-9 py-3.5 rounded-full fluid-body font-semibold tracking-wide text-glow bg-gradient-to-r from-rose-600 via-pink-600 to-rose-600 animate-pulse">
                         ♡ Accept My Love
                     </button>
                 </div>
 
                 <!-- GRAND FINALE SCREEN -->
                 <div id="finaleScreen" class="hidden pointer-events-auto text-center space-y-4 sm:space-y-6">
-                    <h1 id="finaleTitle" class="font-script text-5xl sm:text-7xl text-rose-300 text-glow leading-tight opacity-0 scale-90">I Love You ❤️</h1>
+                    <h1 id="finaleTitle" class="font-script fluid-script text-rose-300 text-glow leading-tight opacity-0 scale-90">I Love You ❤️</h1>
                     <div id="finaleMessages" class="space-y-2 font-serif text-sm sm:text-lg text-pink-100/90 font-light opacity-0">
                         <p>"You are the most beautiful chapter of my life."</p>
                         <p>"Every flower here carries one heartbeat."</p>
@@ -183,27 +351,714 @@
                     </div>
                     <div id="finaleSignature" class="pt-4 opacity-0">
                         <p class="font-sans text-[10px] uppercase tracking-widest text-pink-200/60 mb-0.5">Forever Yours,</p>
-                        <p class="font-script text-3xl sm:text-5xl text-gold-300 text-glow-gold">❤️ Shrawan ❤️</p>
+                        <p class="font-script text-4xl sm:text-6xl text-gold-300 text-glow-gold">❤️ Shrawan ❤️</p>
                     </div>
                 </div>
 
             </div>
         </main>
+
     </div>
 
-    <!-- Floating Love Note Modal Overlay -->
+    <!-- Letter Unfolding Modal Overlay -->
     <div id="letterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md pointer-events-auto">
-        <div class="glass-panel rounded-[2rem] p-6 sm:p-8 max-w-xs sm:max-w-sm w-full text-center relative border-amber-300/40 transform transition-all scale-95 opacity-0" id="letterCard">
+        <div class="glass-panel rounded-[2rem] p-6 sm:p-8 max-w-sm w-full text-center relative border-amber-300/40 transform transition-all scale-90 opacity-0" id="letterCard">
             <button onclick="closeLetterModal()" class="absolute top-4 right-4 text-pink-200/60 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-rose-500/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-3 text-rose-400 text-lg">
+            <div class="w-12 h-12 rounded-full bg-rose-500/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-3 text-rose-400 text-xl">
                 <i class="fa-solid fa-envelope-open-text"></i>
             </div>
-            <p id="letterContent" class="font-serif italic text-xs sm:text-base text-pink-100 mb-5 leading-relaxed"></p>
-            <button onclick="closeLetterModal()" class="glass-btn px-6 py-2 rounded-full text-xs font-medium">Close Note</button>
+            <div id="typewriterText" class="font-serif italic text-sm sm:text-base text-pink-100 mb-6 leading-relaxed min-h-[60px]"></div>
+            <button onclick="closeLetterModal()" class="glass-btn px-6 py-2 rounded-full text-xs font-medium">Keep In My Heart</button>
         </div>
     </div>
 
-    <!-- Custom Script -->
-    <script src="script.js"></script>
+    <!-- JAVASCRIPT ENGINE -->
+    <script>
+        /* =========================================================================
+           1. AUDIO ENGINE (Dual HTML5 Audio & WebAudio Synthesizer)
+           ========================================================================= */
+        class RomanticAudioEngine {
+            constructor() {
+                this.audioCtx = null;
+                this.bgAudio = null;
+                this.isPlaying = false;
+                this.isMuted = false;
+                this.volume = 0.3;
+                this.initAudioEngine();
+            }
+
+            initAudioEngine() {
+                // High-Quality Romantic Piano/Violin Background Music Stream
+                this.bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112181.mp3');
+                this.bgAudio.loop = true;
+                this.bgAudio.volume = this.volume;
+                this.bgAudio.crossOrigin = "anonymous";
+            }
+
+            start() {
+                if (!this.audioCtx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.audioCtx = new AudioCtx();
+                }
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+                this.bgAudio.play().then(() => {
+                    this.isPlaying = true;
+                }).catch(() => {
+                    // Fallback to synthesized ambient chord loop if external CDN is blocked
+                    this.startSynthesizedAmbient();
+                    this.isPlaying = true;
+                });
+            }
+
+            setVolume(val) {
+                this.volume = val;
+                if (this.bgAudio) this.bgAudio.volume = val;
+            }
+
+            togglePlay() {
+                if (this.isPlaying) {
+                    this.bgAudio.pause();
+                    this.isPlaying = false;
+                } else {
+                    this.bgAudio.play();
+                    this.isPlaying = true;
+                }
+            }
+
+            playSparkle() {
+                if (!this.audioCtx) return;
+                const freqs = [1046.50, 1318.51, 1567.98, 2093.00];
+                freqs.forEach((f, i) => {
+                    const osc = this.audioCtx.createOscillator();
+                    const gain = this.audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, this.audioCtx.currentTime + i * 0.04);
+                    gain.gain.setValueAtTime(0.02 * this.volume, this.audioCtx.currentTime + i * 0.04);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + i * 0.04 + 0.4);
+                    osc.connect(gain);
+                    gain.connect(this.audioCtx.destination);
+                    osc.start(this.audioCtx.currentTime + i * 0.04);
+                    osc.stop(this.audioCtx.currentTime + i * 0.04 + 0.4);
+                });
+            }
+
+            playHeartbeat() {
+                if (!this.audioCtx) return;
+                const osc = this.audioCtx.createOscillator();
+                const gain = this.audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(70, this.audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, this.audioCtx.currentTime + 0.35);
+                gain.gain.setValueAtTime(0.3 * this.volume, this.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.35);
+                osc.connect(gain);
+                gain.connect(this.audioCtx.destination);
+                osc.start(this.audioCtx.currentTime);
+                osc.stop(this.audioCtx.currentTime + 0.35);
+            }
+
+            startSynthesizedAmbient() {
+                const chordsBase = [[155.56, 196.00, 233.08, 293.66], [130.81, 155.56, 196.00, 233.08]];
+                let index = 0;
+                setInterval(() => {
+                    if (!this.isPlaying || !this.audioCtx) return;
+                    chordsBase[index].forEach((freq, i) => {
+                        const osc = this.audioCtx.createOscillator();
+                        const gain = this.audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime + i * 0.2);
+                        gain.gain.setValueAtTime(0, this.audioCtx.currentTime + i * 0.2);
+                        gain.gain.linearRampToValueAtTime(0.03 * this.volume, this.audioCtx.currentTime + i * 0.2 + 0.2);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + i * 0.2 + 3.5);
+                        osc.connect(gain);
+                        gain.connect(this.audioCtx.destination);
+                        osc.start(this.audioCtx.currentTime + i * 0.2);
+                        osc.stop(this.audioCtx.currentTime + i * 0.2 + 3.8);
+                    });
+                    index = (index + 1) % chordsBase.length;
+                }, 3800);
+            }
+        }
+
+        const soundEngine = new RomanticAudioEngine();
+
+        /* =========================================================================
+           2. PARALLAX 2D CANVAS (Moonlit Garden, Fog, Fireflies & Petals)
+           ========================================================================= */
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let width, height;
+        let stars = [], fireflies = [], floatingPetals = [];
+
+        function resizeBg() {
+            width = bgCanvas.width = window.innerWidth;
+            height = bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        for (let i = 0; i < 120; i++) {
+            stars.push({
+                x: Math.random() * width, y: Math.random() * height * 0.7,
+                size: Math.random() * 1.8 + 0.4, alpha: Math.random(), speed: Math.random() * 0.02 + 0.005
+            });
+        }
+
+        for (let i = 0; i < 40; i++) {
+            fireflies.push({
+                x: Math.random() * width, y: Math.random() * height,
+                size: Math.random() * 2.5 + 1, alpha: Math.random(),
+                speedX: (Math.random() - 0.5) * 0.6, speedY: (Math.random() - 0.5) * 0.6
+            });
+        }
+
+        for (let i = 0; i < 30; i++) {
+            floatingPetals.push({
+                x: Math.random() * width, y: Math.random() * height,
+                size: Math.random() * 8 + 6, speedY: Math.random() * 0.8 + 0.4,
+                speedX: Math.random() * 0.5 - 0.25, rot: Math.random() * Math.PI,
+                rotSpeed: (Math.random() - 0.5) * 0.02
+            });
+        }
+
+        function renderBg() {
+            bgCtx.clearRect(0, 0, width, height);
+
+            // Silver Moon Glow & Radial Gradient
+            const moonX = width * 0.25;
+            const moonY = height * 0.22;
+            const moonGlow = bgCtx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 280);
+            moonGlow.addColorStop(0, 'rgba(255, 245, 250, 0.35)');
+            moonGlow.addColorStop(0.4, 'rgba(244, 63, 94, 0.12)');
+            moonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            bgCtx.fillStyle = moonGlow;
+            bgCtx.beginPath();
+            bgCtx.arc(moonX, moonY, 280, 0, Math.PI * 2);
+            bgCtx.fill();
+
+            // Stars
+            stars.forEach(s => {
+                s.alpha += s.speed;
+                if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+                bgCtx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+                bgCtx.beginPath();
+                bgCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            });
+
+            // Fireflies
+            fireflies.forEach(f => {
+                f.x += f.speedX; f.y += f.speedY;
+                if (f.x < 0) f.x = width; if (f.x > width) f.x = 0;
+                if (f.y < 0) f.y = height; if (f.y > height) f.y = 0;
+                bgCtx.fillStyle = `rgba(250, 204, 21, ${Math.abs(Math.sin(Date.now() * 0.002 + f.x))})`;
+                bgCtx.beginPath();
+                bgCtx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+                bgCtx.fill();
+            });
+
+            // Floating Rose Petals
+            floatingPetals.forEach(p => {
+                p.y += p.speedY; p.x += Math.sin(p.y * 0.01) + p.speedX;
+                p.rot += p.rotSpeed;
+                if (p.y > height) { p.y = -20; p.x = Math.random() * width; }
+
+                bgCtx.save();
+                bgCtx.translate(p.x, p.y);
+                bgCtx.rotate(p.rot);
+                bgCtx.fillStyle = '#f43f5e';
+                bgCtx.globalAlpha = 0.7;
+                bgCtx.beginPath();
+                bgCtx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+                bgCtx.fill();
+                bgCtx.restore();
+            });
+
+            requestAnimationFrame(renderBg);
+        }
+        renderBg();
+
+        /* =========================================================================
+           3. THREE.JS 3D SCENE (Procedural Bouquet, Proposal Arch & Heart Bloom)
+           ========================================================================= */
+        const container = document.getElementById('threeCanvas');
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        const renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xfff0f5, 0.8);
+        scene.add(ambientLight);
+
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        mainLight.position.set(5, 8, 5);
+        mainLight.castShadow = true;
+        scene.add(mainLight);
+
+        const pointLight = new THREE.PointLight(0xfacc15, 1.2, 10);
+        pointLight.position.set(0, 0, 2);
+        scene.add(pointLight);
+
+        // Bouquet Group & Interactive Flowers
+        const bouquetGroup = new THREE.Group();
+        scene.add(bouquetGroup);
+
+        bouquetGroup.position.set(0, -5, 0);
+        bouquetGroup.scale.set(0.001, 0.001, 0.001);
+
+        const interactiveFlowers = [];
+        const flowerHeadMeshes = [];
+
+        function createPetalGeometry() {
+            const geom = new THREE.SphereGeometry(0.3, 16, 16);
+            geom.scale(1, 1.5, 0.2);
+            return geom;
+        }
+
+        function createRose(colorHex, name, meaning) {
+            const roseGroup = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.1 });
+
+            const flowerHead = new THREE.Group();
+            roseGroup.add(flowerHead);
+            flowerHeadMeshes.push(flowerHead);
+
+            const bud = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 12), mat);
+            bud.rotation.x = Math.PI;
+            flowerHead.add(bud);
+
+            const petalGeom = createPetalGeometry();
+            for (let i = 0; i < 16; i++) {
+                const petal = new THREE.Mesh(petalGeom, mat);
+                const angle = (i / 16) * Math.PI * 4;
+                const radius = 0.15 + (i * 0.015);
+                petal.position.set(Math.cos(angle) * radius, i * 0.02 - 0.1, Math.sin(angle) * radius);
+                petal.rotation.y = -angle;
+                petal.rotation.x = 0.2 + (i * 0.04);
+                flowerHead.add(petal);
+            }
+
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6), new THREE.MeshStandardMaterial({ color: 0x2e5a27 }));
+            stem.position.y = -1.3;
+            roseGroup.add(stem);
+
+            roseGroup.userData = { name, meaning, type: 'flower' };
+            interactiveFlowers.push(roseGroup);
+            return roseGroup;
+        }
+
+        function createTulip(colorHex, name, meaning) {
+            const tulipGroup = new THREE.Group();
+            const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.3 });
+            
+            const flowerHead = new THREE.Group();
+            tulipGroup.add(flowerHead);
+            flowerHeadMeshes.push(flowerHead);
+
+            const petalGeom = new THREE.SphereGeometry(0.25, 16, 16);
+            petalGeom.scale(0.7, 1.4, 0.3);
+
+            for (let i = 0; i < 6; i++) {
+                const petal = new THREE.Mesh(petalGeom, mat);
+                const angle = (i / 6) * Math.PI * 2;
+                petal.position.set(Math.cos(angle) * 0.12, 0, Math.sin(angle) * 0.12);
+                petal.rotation.y = -angle;
+                petal.rotation.x = 0.2;
+                flowerHead.add(petal);
+            }
+
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6), new THREE.MeshStandardMaterial({ color: 0x3a6b32 }));
+            stem.position.y = -1.3;
+            tulipGroup.add(stem);
+
+            tulipGroup.userData = { name, meaning, type: 'flower' };
+            interactiveFlowers.push(tulipGroup);
+            return tulipGroup;
+        }
+
+        // Assemble Luxury Bouquet
+        const flowerConfig = [
+            { mesh: createRose(0xe11d48, "Red Rose", "I Love You ❤️"), pos: [0, 1.2, 0.2], rot: [0, 0, 0] },
+            { mesh: createRose(0xbe123c, "Deep Red Rose", "My Love Belongs To You"), pos: [-0.4, 1.1, 0.4], rot: [0.2, -0.3, -0.2] },
+            { mesh: createRose(0xf43f5e, "Pink Rose", "Thank You For Being You"), pos: [0.4, 1.0, 0.3], rot: [0.2, 0.4, 0.1] },
+            { mesh: createRose(0xffffff, "White Rose", "Forever & Always"), pos: [-0.6, 0.8, 0.1], rot: [0.3, -0.5, -0.3] },
+            { mesh: createRose(0xfff1f2, "Blush Rose", "You Make Days Magical"), pos: [0.6, 0.8, 0.1], rot: [0.3, 0.5, 0.3] },
+            { mesh: createTulip(0xfacc15, "Golden Tulip", "My Heart Is Yours"), pos: [0, 0.9, 0.6], rot: [0.4, 0, 0] },
+            { mesh: createTulip(0xf472b6, "Pink Tulip", "Caring & Gentle"), pos: [-0.3, 0.7, 0.6], rot: [0.5, -0.2, 0] }
+        ];
+
+        flowerConfig.forEach(f => {
+            f.mesh.position.set(...f.pos);
+            f.mesh.rotation.set(...f.rot);
+            bouquetGroup.add(f.mesh);
+        });
+
+        // Bouquet Wrapping & Silk Ribbon
+        const wrapMesh = new THREE.Mesh(
+            new THREE.ConeGeometry(0.95, 2.1, 16, 1, true),
+            new THREE.MeshStandardMaterial({ color: 0xf7e7ce, roughness: 0.5, side: THREE.DoubleSide })
+        );
+        wrapMesh.position.set(0, -0.4, 0);
+        wrapMesh.rotation.x = Math.PI;
+        bouquetGroup.add(wrapMesh);
+
+        const ribbonMesh = new THREE.Mesh(
+            new THREE.TorusGeometry(0.28, 0.06, 12, 30),
+            new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3 })
+        );
+        ribbonMesh.position.set(0, 0.2, 0.6);
+        bouquetGroup.add(ribbonMesh);
+
+        // GRAND FINALE 3D HEART
+        const heartGroup = new THREE.Group();
+        const heartPetalMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.3 });
+        for (let i = 0; i < 70; i++) {
+            const t = (i / 70) * Math.PI * 2;
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+            const p = new THREE.Mesh(createPetalGeometry(), heartPetalMat);
+            p.position.set(x * 0.06, y * 0.06 + 0.3, (Math.random() - 0.5) * 0.15);
+            p.scale.set(0.65, 0.65, 0.65);
+            heartGroup.add(p);
+        }
+        heartGroup.visible = false;
+        scene.add(heartGroup);
+
+        // Adaptive Responsive Layout Adjustments
+        function updateLayout() {
+            const aspect = window.innerWidth / window.innerHeight;
+            camera.aspect = aspect;
+            if (aspect > 1.1) {
+                // Desktop/Laptop: Shift bouquet to left side
+                bouquetGroup.position.x = -1.3;
+                camera.position.set(0, 0.5, 6.5);
+            } else {
+                // Mobile/Tablet: Center bouquet in upper viewport
+                bouquetGroup.position.x = 0;
+                camera.position.set(0, 0.8, 8.5);
+            }
+            camera.updateProjectionMatrix();
+        }
+        updateLayout();
+
+        /* =========================================================================
+           4. STORY CONTROL & ENVELOPE LOVE NOTES SYSTEM
+           ========================================================================= */
+        const loveLetters = [
+            "I smile every time I think of you.",
+            "You make ordinary days feel like magic.",
+            "You are my favorite notification.",
+            "My heart chose you long before I knew it.",
+            "I wish I could give you these flowers in person today.",
+            "I hope these flowers bring a beautiful smile to your face."
+        ];
+
+        let openedLetterIndices = new Set();
+
+        function goToScene(sceneNum) {
+            gsap.to('.scene-card', { opacity: 0, y: 15, duration: 0.35, onComplete: () => {
+                document.querySelectorAll('.scene-card').forEach(el => el.classList.add('hidden'));
+                
+                const targetScene = document.getElementById(`scene${sceneNum}`);
+                if (targetScene) {
+                    targetScene.classList.remove('hidden');
+                    gsap.fromTo(targetScene, { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.5 });
+                }
+            }});
+
+            if (sceneNum === 4) {
+                spawnInteractiveEnvelopes();
+            }
+        }
+
+        function spawnInteractiveEnvelopes() {
+            document.querySelectorAll('.envelope-wrapper').forEach(e => e.remove());
+
+            loveLetters.forEach((msg, idx) => {
+                setTimeout(() => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'envelope-wrapper fixed z-30 cursor-pointer pointer-events-auto transform hover:scale-110 transition-transform';
+                    
+                    // Position envelopes around viewport safe zone
+                    const posX = 12 + (idx % 3) * 28 + (Math.random() * 8);
+                    const posY = 15 + Math.floor(idx / 3) * 30 + (Math.random() * 8);
+                    wrap.style.left = `${posX}%`;
+                    wrap.style.top = `${posY}%`;
+
+                    wrap.innerHTML = `
+                        <div class="envelope" id="env-${idx}">
+                            <div class="envelope-flap"></div>
+                            <div class="envelope-paper flex items-center justify-center text-center">
+                                <i class="fa-solid fa-heart text-rose-500 text-lg"></i>
+                            </div>
+                        </div>
+                    `;
+
+                    wrap.onclick = () => openEnvelopeNote(idx, wrap, msg);
+                    document.body.appendChild(wrap);
+                }, idx * 250);
+            });
+        }
+
+        function openEnvelopeNote(idx, element, messageText) {
+            soundEngine.playSparkle();
+            const env = document.getElementById(`env-${idx}`);
+            env.classList.add('open');
+
+            setTimeout(() => {
+                const modal = document.getElementById('letterModal');
+                const card = document.getElementById('letterCard');
+                const textContainer = document.getElementById('typewriterText');
+                
+                textContainer.textContent = "";
+                modal.classList.remove('hidden');
+                gsap.to(card, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" });
+
+                // Typewriter Handwriting Effect
+                let charIdx = 0;
+                const typeInterval = setInterval(() => {
+                    if (charIdx < messageText.length) {
+                        textContainer.textContent += messageText.charAt(charIdx);
+                        charIdx++;
+                    } else {
+                        clearInterval(typeInterval);
+                    }
+                }, 35);
+
+                if (element) {
+                    gsap.to(element, { scale: 0, opacity: 0, duration: 0.4, delay: 0.5, onComplete: () => element.remove() });
+                }
+
+                openedLetterIndices.add(idx);
+                const total = loveLetters.length;
+                const current = openedLetterIndices.size;
+                const scene4Btn = document.getElementById('scene4NextBtn');
+
+                if (current < total) {
+                    scene4Btn.textContent = `Open all message notes (${current}/${total})`;
+                } else {
+                    scene4Btn.disabled = false;
+                    scene4Btn.innerHTML = '<span>Next Whisper ❤️</span>';
+                    scene4Btn.classList.add('animate-pulse');
+                }
+            }, 600);
+        }
+
+        function closeLetterModal() {
+            const card = document.getElementById('letterCard');
+            gsap.to(card, { scale: 0.8, opacity: 0, duration: 0.3, onComplete: () => {
+                document.getElementById('letterModal').classList.add('hidden');
+            }});
+        }
+
+        /* =========================================================================
+           5. START UNBOXING & GRAND FINALE ANIMATION
+           ========================================================================= */
+        document.getElementById('startBtn').addEventListener('click', () => {
+            soundEngine.start();
+            document.getElementById('audioToggleBtn').classList.remove('hidden');
+            document.getElementById('volumeControlBox').classList.remove('hidden');
+
+            gsap.to('#startScreen', {
+                opacity: 0, scale: 0.85, duration: 0.8, ease: "power2.in", onComplete: () => {
+                    document.getElementById('startScreen').classList.add('hidden');
+                }
+            });
+
+            gsap.to(bouquetGroup.position, { y: -0.3, duration: 3.0, ease: "back.out(1.2)", delay: 0.3 });
+            gsap.to(bouquetGroup.scale, { x: 1, y: 1, z: 1, duration: 3.0, ease: "back.out(1.2)", delay: 0.3 });
+
+            flowerHeadMeshes.forEach((fHead, idx) => {
+                fHead.scale.set(0.01, 0.01, 0.01);
+                gsap.to(fHead.scale, {
+                    x: 1, y: 1, z: 1,
+                    duration: 1.8,
+                    delay: 0.8 + idx * 0.15,
+                    ease: "elastic.out(1, 0.5)",
+                    onStart: () => soundEngine.playSparkle()
+                });
+            });
+
+            setTimeout(() => { goToScene(1); }, 3400);
+        });
+
+        function triggerGrandFinale() {
+            soundEngine.playHeartbeat();
+
+            gsap.to('#scene6', { opacity: 0, y: 20, duration: 0.5, onComplete: () => {
+                document.getElementById('scene6').classList.add('hidden');
+            }});
+
+            gsap.to(camera.position, { x: 0, y: 0.5, z: 2.8, duration: 2.5, ease: "power3.inOut" });
+
+            setTimeout(() => {
+                soundEngine.playSparkle();
+
+                gsap.to(bouquetGroup.scale, { x: 0, y: 0, z: 0, duration: 1 });
+                heartGroup.position.x = 0;
+                heartGroup.visible = true;
+                gsap.fromTo(heartGroup.scale, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
+
+                // Confetti Burst Frame Loop
+                const duration = 5 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f43f5e', '#facc15', '#ffffff'] });
+                    confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f43f5e', '#facc15', '#ffffff'] });
+
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                })();
+
+                const finaleScreen = document.getElementById('finaleScreen');
+                finaleScreen.classList.remove('hidden');
+
+                gsap.to('#finaleTitle', { opacity: 1, scale: 1, duration: 1.2, delay: 0.5 });
+                gsap.to('#finaleMessages', { opacity: 1, y: 0, duration: 1.2, delay: 1.5 });
+                gsap.to('#finaleSignature', { opacity: 1, y: 0, duration: 1.5, delay: 2.8 });
+
+            }, 2000);
+        }
+
+        /* =========================================================================
+           6. INTERACTIVE RAYCASTING & TOUCH DRAG ROTATION
+           ========================================================================= */
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const tooltip = document.getElementById('flowerTooltip');
+        const tooltipName = document.getElementById('tooltipName');
+        const tooltipMeaning = document.getElementById('tooltipMeaning');
+        let hoveredFlower = null;
+
+        function onPointerDown(e) {
+            isDragging = true;
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+            previousMousePosition = { x, y };
+        }
+
+        function onPointerMove(e) {
+            const x = e.touches ? e.touches[0].clientX : e.clientX;
+            const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+            if (isDragging && bouquetGroup.scale.x > 0.5) {
+                const deltaX = x - previousMousePosition.x;
+                bouquetGroup.rotation.y += deltaX * 0.008;
+                previousMousePosition = { x, y };
+            }
+
+            mouse.x = (x / window.innerWidth) * 2 - 1;
+            mouse.y = -(y / window.innerHeight) * 2 + 1;
+
+            // Sparkle Particle Cursor Trail
+            if (Math.random() > 0.65) {
+                const particle = document.createElement('div');
+                particle.className = 'cursor-particle';
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.width = particle.style.height = `${Math.random() * 8 + 4}px`;
+                particle.style.setProperty('--dx', `${(Math.random() - 0.5) * 30}px`);
+                particle.style.setProperty('--dy', `${(Math.random() - 0.5) * 30}px`);
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 800);
+            }
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactiveFlowers, true);
+
+            if (intersects.length > 0) {
+                let obj = intersects[0].object;
+                while (obj.parent && !obj.userData.type) { obj = obj.parent; }
+
+                if (obj && obj.userData.type === 'flower') {
+                    if (hoveredFlower !== obj) {
+                        if (hoveredFlower) gsap.to(hoveredFlower.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+                        hoveredFlower = obj;
+                        gsap.to(hoveredFlower.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.3 });
+                        soundEngine.playSparkle();
+                    }
+
+                    tooltipName.textContent = obj.userData.name;
+                    tooltipMeaning.textContent = `"${obj.userData.meaning}"`;
+                    tooltip.style.left = `${x}px`;
+                    tooltip.style.top = `${y}px`;
+                    tooltip.style.opacity = '1';
+                    return;
+                }
+            }
+
+            if (hoveredFlower) {
+                gsap.to(hoveredFlower.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+                hoveredFlower = null;
+            }
+            tooltip.style.opacity = '0';
+        }
+
+        function onPointerUp() { isDragging = false; }
+
+        window.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', onPointerUp);
+
+        window.addEventListener('touchstart', onPointerDown, { passive: true });
+        window.addEventListener('touchmove', onPointerMove, { passive: true });
+        window.addEventListener('touchend', onPointerUp);
+
+        /* =========================================================================
+           7. CLOCK & EVENT LISTENERS
+           ========================================================================= */
+        const startTime = Date.now();
+        setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+            const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+            const secs = String(elapsed % 60).padStart(2, '0');
+            document.getElementById('ourMomentClock').textContent = `Our Moment: ${hrs}:${mins}:${secs}`;
+        }, 1000);
+
+        document.getElementById('audioToggleBtn').addEventListener('click', () => {
+            soundEngine.togglePlay();
+            const icon = document.getElementById('audioIcon');
+            icon.className = soundEngine.isPlaying ? 'fa-solid fa-music text-sm' : 'fa-solid fa-volume-xmark text-sm';
+        });
+
+        document.getElementById('volumeSlider').addEventListener('input', (e) => {
+            soundEngine.setVolume(parseFloat(e.target.value));
+        });
+
+        window.addEventListener('resize', () => {
+            updateLayout();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 3D Render Loop
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            if (bouquetGroup.position.y > -2 && !isDragging) {
+                bouquetGroup.rotation.y += 0.0025;
+                bouquetGroup.position.y = -0.3 + Math.sin(elapsedTime * 1.2) * 0.04;
+            }
+
+            if (heartGroup.visible) {
+                heartGroup.rotation.y = elapsedTime * 0.35;
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
 </body>
 </html>
