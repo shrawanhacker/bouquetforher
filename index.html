@@ -157,19 +157,28 @@
             transform: translate(-50%, -130%);
         }
 
-        /* Interactive 3D Envelope Styling */
+        /* Floating Animation for Smaller Message Box */
+        @keyframes floatModalCard {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-floating {
+            animation: floatModalCard 3.5s ease-in-out infinite;
+        }
+
+        /* Scaled Down Compact Envelope Styling */
         .envelope-wrapper {
-            perspective: 1000px;
+            perspective: 800px;
         }
         .envelope {
-            width: 220px;
-            height: 140px;
+            width: 110px;
+            height: 70px;
             position: relative;
             background: #9f1239;
-            border-radius: 8px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px rgba(244,63,94,0.4);
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6), 0 0 15px rgba(244,63,94,0.35);
             cursor: pointer;
-            transition: transform 0.5s ease;
+            transition: transform 0.4s ease;
         }
         .envelope-flap {
             position: absolute;
@@ -177,11 +186,11 @@
             left: 0;
             width: 0;
             height: 0;
-            border-left: 110px solid transparent;
-            border-right: 110px solid transparent;
-            border-top: 80px solid #be123c;
+            border-left: 55px solid transparent;
+            border-right: 55px solid transparent;
+            border-top: 40px solid #be123c;
             transform-origin: top;
-            transition: transform 0.6s ease;
+            transition: transform 0.5s ease;
             z-index: 3;
         }
         .envelope.open .envelope-flap {
@@ -190,22 +199,22 @@
         }
         .envelope-paper {
             position: absolute;
-            bottom: 10px;
-            left: 15px;
-            right: 15px;
-            height: 110px;
+            bottom: 5px;
+            left: 8px;
+            right: 8px;
+            height: 55px;
             background: #fffdfa;
-            border-radius: 6px;
-            padding: 12px;
+            border-radius: 4px;
+            padding: 6px;
             color: #881337;
             font-family: 'Playfair Display', serif;
-            font-size: 0.8rem;
-            transition: transform 0.6s ease;
+            font-size: 0.65rem;
+            transition: transform 0.5s ease;
             z-index: 2;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
         }
         .envelope.open .envelope-paper {
-            transform: translateY(-80px) scale(1.05);
+            transform: translateY(-40px) scale(1.05);
             z-index: 4;
         }
     </style>
@@ -227,7 +236,7 @@
     <!-- UI Overlay Layer -->
     <div id="uiLayer" class="fixed inset-0 z-20 pointer-events-none flex flex-col justify-between safe-pt safe-pb safe-px">
         
-        <!-- Header Controls (Music, Sound FX Toggle, Our Moment Counter) -->
+        <!-- Header Controls (Music, Voice Narration Toggle, Volume, Our Moment Counter) -->
         <header class="w-full flex justify-between items-center pointer-events-auto">
             <div class="flex items-center gap-2 glass-panel px-3.5 py-1.5 rounded-full border-amber-300/30">
                 <i class="fa-solid fa-sparkles text-amber-300 text-xs animate-pulse"></i>
@@ -238,9 +247,15 @@
                 <!-- Volume Control Floating Slider -->
                 <div id="volumeControlBox" class="hidden glass-panel px-3 py-1.5 rounded-full border-amber-300/30 flex items-center gap-2">
                     <i class="fa-solid fa-volume-low text-xs text-amber-200"></i>
-                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.3" class="w-16 sm:w-20 accent-rose-500 cursor-pointer">
+                    <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.35" class="w-16 sm:w-20 accent-rose-500 cursor-pointer">
                 </div>
 
+                <!-- Text-to-Speech Narration Toggle -->
+                <button id="narrationBtn" aria-label="Toggle Narration" class="hidden glass-panel w-10 h-10 rounded-full flex items-center justify-center text-amber-300 hover:text-white transition-all active:scale-95 border-amber-300/30">
+                    <i id="narrationIcon" class="fa-solid fa-microphone text-sm"></i>
+                </button>
+
+                <!-- Audio Toggle Button -->
                 <button id="audioToggleBtn" class="hidden glass-panel w-10 h-10 rounded-full flex items-center justify-center text-rose-300 hover:text-white transition-all active:scale-95 border-amber-300/30">
                     <i id="audioIcon" class="fa-solid fa-music text-sm"></i>
                 </button>
@@ -360,22 +375,22 @@
 
     </div>
 
-    <!-- Letter Unfolding Modal Overlay -->
+    <!-- Letter Unfolding Floating Modal Overlay (Smaller & Floating) -->
     <div id="letterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md pointer-events-auto">
-        <div class="glass-panel rounded-[2rem] p-6 sm:p-8 max-w-sm w-full text-center relative border-amber-300/40 transform transition-all scale-90 opacity-0" id="letterCard">
-            <button onclick="closeLetterModal()" class="absolute top-4 right-4 text-pink-200/60 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            <div class="w-12 h-12 rounded-full bg-rose-500/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-3 text-rose-400 text-xl">
+        <div class="glass-panel rounded-[1.8rem] p-5 sm:p-6 max-w-[280px] sm:max-w-xs w-full text-center relative border-amber-300/40 transform transition-all scale-90 opacity-0 animate-floating" id="letterCard">
+            <button onclick="closeLetterModal()" class="absolute top-3.5 right-3.5 text-pink-200/60 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
+            <div class="w-10 h-10 rounded-full bg-rose-500/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-3 text-rose-400 text-lg">
                 <i class="fa-solid fa-envelope-open-text"></i>
             </div>
-            <div id="typewriterText" class="font-serif italic text-sm sm:text-base text-pink-100 mb-6 leading-relaxed min-h-[60px]"></div>
-            <button onclick="closeLetterModal()" class="glass-btn px-6 py-2 rounded-full text-xs font-medium">Keep In My Heart</button>
+            <div id="typewriterText" class="font-serif italic text-xs sm:text-sm text-pink-100 mb-5 leading-relaxed min-h-[50px]"></div>
+            <button onclick="closeLetterModal()" class="glass-btn px-5 py-2 rounded-full text-[11px] font-medium">Keep In My Heart</button>
         </div>
     </div>
 
     <!-- JAVASCRIPT ENGINE -->
     <script>
         /* =========================================================================
-           1. AUDIO ENGINE (Dual HTML5 Audio & WebAudio Synthesizer)
+           1. AUDIO ENGINE (Music Stream, Native Web Audio Synthesizer & Web Speech TTS)
            ========================================================================= */
         class RomanticAudioEngine {
             constructor() {
@@ -383,19 +398,23 @@
                 this.bgAudio = null;
                 this.isPlaying = false;
                 this.isMuted = false;
-                this.volume = 0.3;
+                this.volume = 0.4;
+                this.narrationEnabled = true;
+                this.synth = window.speechSynthesis || null;
+                this.synthInterval = null;
                 this.initAudioEngine();
             }
 
             initAudioEngine() {
-                // High-Quality Romantic Piano/Violin Background Music Stream
-                this.bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112181.mp3');
+                // Royalty-Free Classical Audio Stream
+                this.bgAudio = new Audio('https://upload.wikimedia.org/wikipedia/commons/2/22/Canon_in_D_major_-_Pachelbel.ogg');
                 this.bgAudio.loop = true;
                 this.bgAudio.volume = this.volume;
                 this.bgAudio.crossOrigin = "anonymous";
             }
 
             start() {
+                // Initialize Web Audio Context
                 if (!this.audioCtx) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
                     this.audioCtx = new AudioCtx();
@@ -403,13 +422,19 @@
                 if (this.audioCtx.state === 'suspended') {
                     this.audioCtx.resume();
                 }
-                this.bgAudio.play().then(() => {
-                    this.isPlaying = true;
-                }).catch(() => {
-                    // Fallback to synthesized ambient chord loop if external CDN is blocked
-                    this.startSynthesizedAmbient();
-                    this.isPlaying = true;
-                });
+
+                // Mark playing TRUE immediately so Web Audio generators run with 100% reliability
+                this.isPlaying = true;
+
+                // Start native procedural synthesized piano & string music immediately
+                this.startSynthesizedAmbient();
+
+                // Also trigger HTML5 Audio stream
+                if (this.bgAudio) {
+                    this.bgAudio.play().catch(e => {
+                        console.log("Stream fallback active via WebAudio synth");
+                    });
+                }
             }
 
             setVolume(val) {
@@ -419,12 +444,30 @@
 
             togglePlay() {
                 if (this.isPlaying) {
-                    this.bgAudio.pause();
+                    if (this.bgAudio) this.bgAudio.pause();
                     this.isPlaying = false;
                 } else {
-                    this.bgAudio.play();
+                    if (this.bgAudio) this.bgAudio.play();
                     this.isPlaying = true;
                 }
+            }
+
+            toggleNarration() {
+                this.narrationEnabled = !this.narrationEnabled;
+                if (!this.narrationEnabled && this.synth) {
+                    this.synth.cancel();
+                }
+                return this.narrationEnabled;
+            }
+
+            speakNarration(text) {
+                if (!this.narrationEnabled || !this.synth) return;
+                this.synth.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 0.88;
+                utterance.pitch = 1.05;
+                utterance.volume = 0.85;
+                this.synth.speak(utterance);
             }
 
             playSparkle() {
@@ -460,25 +503,52 @@
             }
 
             startSynthesizedAmbient() {
-                const chordsBase = [[155.56, 196.00, 233.08, 293.66], [130.81, 155.56, 196.00, 233.08]];
+                if (this.synthInterval) return;
+
+                // Warm Romantic Chord Progression: Ebmaj9 -> Cm9 -> Abmaj7 -> Bb11
+                const chordsBase = [
+                    [155.56, 196.00, 233.08, 311.13, 392.00],
+                    [130.81, 155.56, 196.00, 261.63, 311.13],
+                    [103.83, 130.81, 155.56, 207.65, 261.63],
+                    [116.54, 146.83, 174.61, 233.08, 293.66]
+                ];
                 let index = 0;
-                setInterval(() => {
+
+                const playArpeggio = () => {
                     if (!this.isPlaying || !this.audioCtx) return;
-                    chordsBase[index].forEach((freq, i) => {
+                    const chord = chordsBase[index];
+
+                    chord.forEach((freq, i) => {
+                        const now = this.audioCtx.currentTime;
+                        const startTime = now + i * 0.22;
+
                         const osc = this.audioCtx.createOscillator();
                         const gain = this.audioCtx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(freq, this.audioCtx.currentTime + i * 0.2);
-                        gain.gain.setValueAtTime(0, this.audioCtx.currentTime + i * 0.2);
-                        gain.gain.linearRampToValueAtTime(0.03 * this.volume, this.audioCtx.currentTime + i * 0.2 + 0.2);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + i * 0.2 + 3.5);
-                        osc.connect(gain);
+                        const filter = this.audioCtx.createBiquadFilter();
+
+                        osc.type = i % 2 === 0 ? 'sine' : 'triangle';
+                        osc.frequency.setValueAtTime(freq, startTime);
+
+                        filter.type = 'lowpass';
+                        filter.frequency.setValueAtTime(1000, startTime);
+
+                        gain.gain.setValueAtTime(0, startTime);
+                        gain.gain.linearRampToValueAtTime(0.06 * this.volume, startTime + 0.1);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 3.2);
+
+                        osc.connect(filter);
+                        filter.connect(gain);
                         gain.connect(this.audioCtx.destination);
-                        osc.start(this.audioCtx.currentTime + i * 0.2);
-                        osc.stop(this.audioCtx.currentTime + i * 0.2 + 3.8);
+
+                        osc.start(startTime);
+                        osc.stop(startTime + 3.4);
                     });
+
                     index = (index + 1) % chordsBase.length;
-                }, 3800);
+                };
+
+                playArpeggio();
+                this.synthInterval = setInterval(playArpeggio, 3200);
             }
         }
 
@@ -750,7 +820,7 @@
         updateLayout();
 
         /* =========================================================================
-           4. STORY CONTROL & ENVELOPE LOVE NOTES SYSTEM
+           4. STORY CONTROL & ELEGANT COMPACT ENVELOPE LOVE NOTES SYSTEM
            ========================================================================= */
         const loveLetters = [
             "I smile every time I think of you.",
@@ -761,9 +831,23 @@
             "I hope these flowers bring a beautiful smile to your face."
         ];
 
+        const narrationLines = [
+            "Hello Beautiful. I created this royal enchanted garden just for you.",
+            "These flowers are for you. If distance keeps me away today, let these flowers hug you for me!",
+            "Every flower has a meaning.",
+            "Whispers from my heart. Tap each floating letter envelope to unlock my messages.",
+            "Close your eyes. Imagine standing beside me in this moonlit garden.",
+            "This bouquet will never fade. Real flowers wilt, but my feelings for you never will."
+        ];
+
         let openedLetterIndices = new Set();
 
         function goToScene(sceneNum) {
+            soundEngine.playSparkle();
+            if (narrationLines[sceneNum - 1]) {
+                soundEngine.speakNarration(narrationLines[sceneNum - 1]);
+            }
+
             gsap.to('.scene-card', { opacity: 0, y: 15, duration: 0.35, onComplete: () => {
                 document.querySelectorAll('.scene-card').forEach(el => el.classList.add('hidden'));
                 
@@ -787,9 +871,9 @@
                     const wrap = document.createElement('div');
                     wrap.className = 'envelope-wrapper fixed z-30 cursor-pointer pointer-events-auto transform hover:scale-110 transition-transform';
                     
-                    // Position envelopes around viewport safe zone
-                    const posX = 12 + (idx % 3) * 28 + (Math.random() * 8);
-                    const posY = 15 + Math.floor(idx / 3) * 30 + (Math.random() * 8);
+                    // Position scaled-down envelopes neatly on left side so they never cover UI panel
+                    const posX = 8 + (idx % 3) * 16 + (Math.random() * 4);
+                    const posY = 18 + Math.floor(idx / 3) * 25 + (Math.random() * 4);
                     wrap.style.left = `${posX}%`;
                     wrap.style.top = `${posY}%`;
 
@@ -797,19 +881,20 @@
                         <div class="envelope" id="env-${idx}">
                             <div class="envelope-flap"></div>
                             <div class="envelope-paper flex items-center justify-center text-center">
-                                <i class="fa-solid fa-heart text-rose-500 text-lg"></i>
+                                <i class="fa-solid fa-heart text-rose-500 text-sm"></i>
                             </div>
                         </div>
                     `;
 
                     wrap.onclick = () => openEnvelopeNote(idx, wrap, msg);
                     document.body.appendChild(wrap);
-                }, idx * 250);
+                }, idx * 200);
             });
         }
 
         function openEnvelopeNote(idx, element, messageText) {
             soundEngine.playSparkle();
+            soundEngine.speakNarration(messageText);
             const env = document.getElementById(`env-${idx}`);
             env.classList.add('open');
 
@@ -834,7 +919,7 @@
                 }, 35);
 
                 if (element) {
-                    gsap.to(element, { scale: 0, opacity: 0, duration: 0.4, delay: 0.5, onComplete: () => element.remove() });
+                    gsap.to(element, { scale: 0, opacity: 0, duration: 0.4, delay: 0.4, onComplete: () => element.remove() });
                 }
 
                 openedLetterIndices.add(idx);
@@ -849,7 +934,7 @@
                     scene4Btn.innerHTML = '<span>Next Whisper ❤️</span>';
                     scene4Btn.classList.add('animate-pulse');
                 }
-            }, 600);
+            }, 500);
         }
 
         function closeLetterModal() {
@@ -865,6 +950,7 @@
         document.getElementById('startBtn').addEventListener('click', () => {
             soundEngine.start();
             document.getElementById('audioToggleBtn').classList.remove('hidden');
+            document.getElementById('narrationBtn').classList.remove('hidden');
             document.getElementById('volumeControlBox').classList.remove('hidden');
 
             gsap.to('#startScreen', {
@@ -892,6 +978,7 @@
 
         function triggerGrandFinale() {
             soundEngine.playHeartbeat();
+            soundEngine.speakNarration("I love you. You are the most beautiful chapter of my life. My heart will always choose you.");
 
             gsap.to('#scene6', { opacity: 0, y: 20, duration: 0.5, onComplete: () => {
                 document.getElementById('scene6').classList.add('hidden');
@@ -1032,6 +1119,12 @@
             icon.className = soundEngine.isPlaying ? 'fa-solid fa-music text-sm' : 'fa-solid fa-volume-xmark text-sm';
         });
 
+        document.getElementById('narrationBtn').addEventListener('click', () => {
+            const active = soundEngine.toggleNarration();
+            const icon = document.getElementById('narrationIcon');
+            icon.className = active ? 'fa-solid fa-microphone text-sm' : 'fa-solid fa-microphone-slash text-sm text-rose-400';
+        });
+
         document.getElementById('volumeSlider').addEventListener('input', (e) => {
             soundEngine.setVolume(parseFloat(e.target.value));
         });
@@ -1053,7 +1146,7 @@
             }
 
             if (heartGroup.visible) {
-                heartGroup.rotation.y = elapsedTime * 0.35;
+                heartGroup.rotation.y += 0.008;
             }
 
             renderer.render(scene, camera);
