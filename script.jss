@@ -1,1 +1,680 @@
+/* =========================================================================
+   1. AUDIO ENGINE (Background Music Stream & Web Speech TTS)
+   ========================================================================= */
+class RomanticAudioEngine {
+    constructor() {
+        this.audioCtx = null;
+        this.bgAudio = null;
+        this.isPlaying = false;
+        this.isMuted = false;
+        this.volume = 0.35;
+        this.narrationEnabled = true;
+        this.synth = window.speechSynthesis || null;
+        this.initAudioEngine();
+    }
 
+    initAudioEngine() {
+        this.bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112181.mp3');
+        this.bgAudio.loop = true;
+        this.bgAudio.volume = this.volume;
+        this.bgAudio.crossOrigin = "anonymous";
+    }
+
+    start() {
+        if (!this.audioCtx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            this.audioCtx = new AudioCtx();
+        }
+        if (this.audioCtx.state === 'suspended') {
+            this.audioCtx.resume();
+        }
+        this.bgAudio.play().then(() => {
+            this.isPlaying = true;
+        }).catch(() => {
+            this.isPlaying = true;
+        });
+    }
+
+    setVolume(val) {
+        this.volume = val;
+        if (this.bgAudio) this.bgAudio.volume = val;
+    }
+
+    togglePlay() {
+        if (this.isPlaying) {
+            if (this.bgAudio) this.bgAudio.pause();
+            this.isPlaying = false;
+        } else {
+            if (this.bgAudio) this.bgAudio.play();
+            this.isPlaying = true;
+        }
+    }
+
+    toggleNarration() {
+        this.narrationEnabled = !this.narrationEnabled;
+        if (!this.narrationEnabled && this.synth) {
+            this.synth.cancel();
+        }
+        return this.narrationEnabled;
+    }
+
+    speakNarration(text) {
+        if (!this.narrationEnabled || !this.synth) return;
+        this.synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.88;
+        utterance.pitch = 1.05;
+        utterance.volume = 0.85;
+        this.synth.speak(utterance);
+    }
+
+    playSparkle() {
+        if (!this.audioCtx) return;
+        const freqs = [1046.50, 1318.51, 1567.98, 2093.00];
+        freqs.forEach((f, i) => {
+            const osc = this.audioCtx.createOscillator();
+            const gain = this.audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, this.audioCtx.currentTime + i * 0.04);
+            gain.gain.setValueAtTime(0.02 * this.volume, this.audioCtx.currentTime + i * 0.04);
+            gain.gain.exponentialRampToValueAtTime(0.0001, this.audioCtx.currentTime + i * 0.04 + 0.4);
+            osc.connect(gain);
+            gain.connect(this.audioCtx.destination);
+            osc.start(this.audioCtx.currentTime + i * 0.04);
+            osc.stop(this.audioCtx.currentTime + i * 0.04 + 0.4);
+        });
+    }
+
+    playHeartbeat() {
+        if (!this.audioCtx) return;
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(70, this.audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, this.audioCtx.currentTime + 0.35);
+        gain.gain.setValueAtTime(0.3 * this.volume, this.audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+        osc.start(this.audioCtx.currentTime);
+        osc.stop(this.audioCtx.currentTime + 0.35);
+    }
+}
+
+const soundEngine = new RomanticAudioEngine();
+
+/* =========================================================================
+   2. PARALLAX 2D CANVAS (Moonlit Garden, Fog, Fireflies & Petals)
+   ========================================================================= */
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+let width, height;
+let stars = [], fireflies = [], floatingPetals = [];
+
+function resizeBg() {
+    width = bgCanvas.width = window.innerWidth;
+    height = bgCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeBg);
+resizeBg();
+
+for (let i = 0; i < 120; i++) {
+    stars.push({
+        x: Math.random() * width, y: Math.random() * height * 0.7,
+        size: Math.random() * 1.8 + 0.4, alpha: Math.random(), speed: Math.random() * 0.02 + 0.005
+    });
+}
+
+for (let i = 0; i < 40; i++) {
+    fireflies.push({
+        x: Math.random() * width, y: Math.random() * height,
+        size: Math.random() * 2.5 + 1, alpha: Math.random(),
+        speedX: (Math.random() - 0.5) * 0.6, speedY: (Math.random() - 0.5) * 0.6
+    });
+}
+
+for (let i = 0; i < 30; i++) {
+    floatingPetals.push({
+        x: Math.random() * width, y: Math.random() * height,
+        size: Math.random() * 8 + 6, speedY: Math.random() * 0.8 + 0.4,
+        speedX: Math.random() * 0.5 - 0.25, rot: Math.random() * Math.PI,
+        rotSpeed: (Math.random() - 0.5) * 0.02
+    });
+}
+
+function renderBg() {
+    bgCtx.clearRect(0, 0, width, height);
+
+    // Silver Moon Glow & Radial Gradient
+    const moonX = width * 0.25;
+    const moonY = height * 0.22;
+    const moonGlow = bgCtx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 280);
+    moonGlow.addColorStop(0, 'rgba(255, 245, 250, 0.35)');
+    moonGlow.addColorStop(0.4, 'rgba(244, 63, 94, 0.12)');
+    moonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    bgCtx.fillStyle = moonGlow;
+    bgCtx.beginPath();
+    bgCtx.arc(moonX, moonY, 280, 0, Math.PI * 2);
+    bgCtx.fill();
+
+    // Stars
+    stars.forEach(s => {
+        s.alpha += s.speed;
+        if (s.alpha > 1 || s.alpha < 0) s.speed = -s.speed;
+        bgCtx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+        bgCtx.beginPath();
+        bgCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        bgCtx.fill();
+    });
+
+    // Fireflies
+    fireflies.forEach(f => {
+        f.x += f.speedX; f.y += f.speedY;
+        if (f.x < 0) f.x = width; if (f.x > width) f.x = 0;
+        if (f.y < 0) f.y = height; if (f.y > height) f.y = 0;
+        bgCtx.fillStyle = `rgba(250, 204, 21, ${Math.abs(Math.sin(Date.now() * 0.002 + f.x))})`;
+        bgCtx.beginPath();
+        bgCtx.arc(f.x, f.y, f.size, 0, Math.PI * 2);
+        bgCtx.fill();
+    });
+
+    // Floating Rose Petals
+    floatingPetals.forEach(p => {
+        p.y += p.speedY; p.x += Math.sin(p.y * 0.01) + p.speedX;
+        p.rot += p.rotSpeed;
+        if (p.y > height) { p.y = -20; p.x = Math.random() * width; }
+
+        bgCtx.save();
+        bgCtx.translate(p.x, p.y);
+        bgCtx.rotate(p.rot);
+        bgCtx.fillStyle = '#f43f5e';
+        bgCtx.globalAlpha = 0.7;
+        bgCtx.beginPath();
+        bgCtx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+        bgCtx.fill();
+        bgCtx.restore();
+    });
+
+    requestAnimationFrame(renderBg);
+}
+renderBg();
+
+/* =========================================================================
+   3. THREE.JS 3D SCENE (Procedural Bouquet, Proposal Arch & Heart Bloom)
+   ========================================================================= */
+const container = document.getElementById('threeCanvas');
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({ canvas: container, antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+// Lighting
+const ambientLight = new THREE.AmbientLight(0xfff0f5, 0.8);
+scene.add(ambientLight);
+
+const mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+mainLight.position.set(5, 8, 5);
+mainLight.castShadow = true;
+scene.add(mainLight);
+
+const pointLight = new THREE.PointLight(0xfacc15, 1.2, 10);
+pointLight.position.set(0, 0, 2);
+scene.add(pointLight);
+
+// Bouquet Group & Interactive Flowers
+const bouquetGroup = new THREE.Group();
+scene.add(bouquetGroup);
+
+bouquetGroup.position.set(0, -5, 0);
+bouquetGroup.scale.set(0.001, 0.001, 0.001);
+
+const interactiveFlowers = [];
+const flowerHeadMeshes = [];
+
+function createPetalGeometry() {
+    const geom = new THREE.SphereGeometry(0.3, 16, 16);
+    geom.scale(1, 1.5, 0.2);
+    return geom;
+}
+
+function createRose(colorHex, name, meaning) {
+    const roseGroup = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.35, metalness: 0.1 });
+
+    const flowerHead = new THREE.Group();
+    roseGroup.add(flowerHead);
+    flowerHeadMeshes.push(flowerHead);
+
+    const bud = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 12), mat);
+    bud.rotation.x = Math.PI;
+    flowerHead.add(bud);
+
+    const petalGeom = createPetalGeometry();
+    for (let i = 0; i < 16; i++) {
+        const petal = new THREE.Mesh(petalGeom, mat);
+        const angle = (i / 16) * Math.PI * 4;
+        const radius = 0.15 + (i * 0.015);
+        petal.position.set(Math.cos(angle) * radius, i * 0.02 - 0.1, Math.sin(angle) * radius);
+        petal.rotation.y = -angle;
+        petal.rotation.x = 0.2 + (i * 0.04);
+        flowerHead.add(petal);
+    }
+
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6), new THREE.MeshStandardMaterial({ color: 0x2e5a27 }));
+    stem.position.y = -1.3;
+    roseGroup.add(stem);
+
+    roseGroup.userData = { name, meaning, type: 'flower' };
+    interactiveFlowers.push(roseGroup);
+    return roseGroup;
+}
+
+function createTulip(colorHex, name, meaning) {
+    const tulipGroup = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: colorHex, roughness: 0.3 });
+    
+    const flowerHead = new THREE.Group();
+    tulipGroup.add(flowerHead);
+    flowerHeadMeshes.push(flowerHead);
+
+    const petalGeom = new THREE.SphereGeometry(0.25, 16, 16);
+    petalGeom.scale(0.7, 1.4, 0.3);
+
+    for (let i = 0; i < 6; i++) {
+        const petal = new THREE.Mesh(petalGeom, mat);
+        const angle = (i / 6) * Math.PI * 2;
+        petal.position.set(Math.cos(angle) * 0.12, 0, Math.sin(angle) * 0.12);
+        petal.rotation.y = -angle;
+        petal.rotation.x = 0.2;
+        flowerHead.add(petal);
+    }
+
+    const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.6), new THREE.MeshStandardMaterial({ color: 0x3a6b32 }));
+    stem.position.y = -1.3;
+    tulipGroup.add(stem);
+
+    tulipGroup.userData = { name, meaning, type: 'flower' };
+    interactiveFlowers.push(tulipGroup);
+    return tulipGroup;
+}
+
+// Assemble Luxury Bouquet
+const flowerConfig = [
+    { mesh: createRose(0xe11d48, "Red Rose", "I Love You ❤️"), pos: [0, 1.2, 0.2], rot: [0, 0, 0] },
+    { mesh: createRose(0xbe123c, "Deep Red Rose", "My Love Belongs To You"), pos: [-0.4, 1.1, 0.4], rot: [0.2, -0.3, -0.2] },
+    { mesh: createRose(0xf43f5e, "Pink Rose", "Thank You For Being You"), pos: [0.4, 1.0, 0.3], rot: [0.2, 0.4, 0.1] },
+    { mesh: createRose(0xffffff, "White Rose", "Forever & Always"), pos: [-0.6, 0.8, 0.1], rot: [0.3, -0.5, -0.3] },
+    { mesh: createRose(0xfff1f2, "Blush Rose", "You Make Days Magical"), pos: [0.6, 0.8, 0.1], rot: [0.3, 0.5, 0.3] },
+    { mesh: createTulip(0xfacc15, "Golden Tulip", "My Heart Is Yours"), pos: [0, 0.9, 0.6], rot: [0.4, 0, 0] },
+    { mesh: createTulip(0xf472b6, "Pink Tulip", "Caring & Gentle"), pos: [-0.3, 0.7, 0.6], rot: [0.5, -0.2, 0] }
+];
+
+flowerConfig.forEach(f => {
+    f.mesh.position.set(...f.pos);
+    f.mesh.rotation.set(...f.rot);
+    bouquetGroup.add(f.mesh);
+});
+
+// Bouquet Wrapping & Silk Ribbon
+const wrapMesh = new THREE.Mesh(
+    new THREE.ConeGeometry(0.95, 2.1, 16, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0xf7e7ce, roughness: 0.5, side: THREE.DoubleSide })
+);
+wrapMesh.position.set(0, -0.4, 0);
+wrapMesh.rotation.x = Math.PI;
+bouquetGroup.add(wrapMesh);
+
+const ribbonMesh = new THREE.Mesh(
+    new THREE.TorusGeometry(0.28, 0.06, 12, 30),
+    new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.3 })
+);
+ribbonMesh.position.set(0, 0.2, 0.6);
+bouquetGroup.add(ribbonMesh);
+
+// GRAND FINALE 3D HEART
+const heartGroup = new THREE.Group();
+const heartPetalMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.3 });
+for (let i = 0; i < 70; i++) {
+    const t = (i / 70) * Math.PI * 2;
+    const x = 16 * Math.pow(Math.sin(t), 3);
+    const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+    const p = new THREE.Mesh(createPetalGeometry(), heartPetalMat);
+    p.position.set(x * 0.06, y * 0.06 + 0.3, (Math.random() - 0.5) * 0.15);
+    p.scale.set(0.65, 0.65, 0.65);
+    heartGroup.add(p);
+}
+heartGroup.visible = false;
+scene.add(heartGroup);
+
+// Adaptive Responsive Layout Adjustments
+function updateLayout() {
+    const aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = aspect;
+    if (aspect > 1.1) {
+        // Desktop/Laptop: Shift bouquet to left side
+        bouquetGroup.position.x = -1.3;
+        camera.position.set(0, 0.5, 6.5);
+    } else {
+        // Mobile/Tablet: Center bouquet in upper viewport
+        bouquetGroup.position.x = 0;
+        camera.position.set(0, 0.8, 8.5);
+    }
+    camera.updateProjectionMatrix();
+}
+updateLayout();
+
+/* =========================================================================
+   4. STORY CONTROL & CIRCULAR BOUNCE ENVELOPE LOVE NOTES SYSTEM
+   ========================================================================= */
+const loveLetters = [
+    "I smile every time I think of you.",
+    "You make ordinary days feel like magic.",
+    "You are my favorite notification.",
+    "My heart chose you long before I knew it.",
+    "I wish I could give you these flowers in person today.",
+    "I hope these flowers bring a beautiful smile to your face."
+];
+
+const narrationLines = [
+    "Hello Beautiful. I created this royal enchanted garden just for you.",
+    "These flowers are for you. If distance keeps me away today, let these flowers hug you for me!",
+    "Every flower has a meaning.",
+    "Whispers from my heart. Tap each floating letter envelope to unlock my messages.",
+    "Close your eyes. Imagine standing beside me in this moonlit garden.",
+    "This bouquet will never fade. Real flowers wilt, but my feelings for you never will."
+];
+
+let openedLetterIndices = new Set();
+
+function goToScene(sceneNum) {
+    soundEngine.playSparkle();
+    if (narrationLines[sceneNum - 1]) {
+        soundEngine.speakNarration(narrationLines[sceneNum - 1]);
+    }
+
+    gsap.to('.scene-card', { opacity: 0, y: 15, duration: 0.35, onComplete: () => {
+        document.querySelectorAll('.scene-card').forEach(el => el.classList.add('hidden'));
+        
+        const targetScene = document.getElementById(`scene${sceneNum}`);
+        if (targetScene) {
+            targetScene.classList.remove('hidden');
+            gsap.fromTo(targetScene, { opacity: 0, y: -15 }, { opacity: 1, y: 0, duration: 0.5 });
+        }
+    }});
+
+    if (sceneNum === 4) {
+        spawnInteractiveEnvelopes();
+    }
+}
+
+function spawnInteractiveEnvelopes() {
+    // Clear existing if re-entering
+    document.querySelectorAll('.love-letter-btn').forEach(e => e.remove());
+
+    loveLetters.forEach((msg, idx) => {
+        setTimeout(() => {
+            const letterEl = document.createElement('div');
+            letterEl.className = 'love-letter-btn fixed z-30 cursor-pointer pointer-events-auto glass-panel w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-rose-300 hover:scale-125 transition-transform shadow-lg border-amber-300/50 animate-bounce';
+            
+            const posX = 12 + Math.random() * 76;
+            const posY = 15 + Math.random() * 45;
+            letterEl.style.left = `${posX}%`;
+            letterEl.style.top = `${posY}%`;
+            letterEl.innerHTML = '<i class="fa-solid fa-envelope text-xs sm:text-sm"></i>';
+
+            letterEl.onclick = () => openEnvelopeNote(msg, idx, letterEl);
+            document.body.appendChild(letterEl);
+        }, idx * 350);
+    });
+}
+
+function openEnvelopeNote(messageText, idx, element) {
+    soundEngine.playSparkle();
+    soundEngine.speakNarration(messageText);
+
+    const modal = document.getElementById('letterModal');
+    const card = document.getElementById('letterCard');
+    document.getElementById('letterContent').textContent = `"${messageText}"`;
+
+    modal.classList.remove('hidden');
+    gsap.to(card, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" });
+
+    if (element) {
+        gsap.to(element, { scale: 0, opacity: 0, duration: 0.3, onComplete: () => element.remove() });
+    }
+
+    // Track opened letters to unlock Scene 4 Next Button
+    openedLetterIndices.add(idx);
+    const total = loveLetters.length;
+    const current = openedLetterIndices.size;
+    const scene4Btn = document.getElementById('scene4NextBtn');
+
+    if (current < total) {
+        scene4Btn.textContent = `Open all message notes (${current}/${total})`;
+    } else {
+        scene4Btn.disabled = false;
+        scene4Btn.innerHTML = '<span>Next Whisper ❤️</span>';
+        scene4Btn.classList.add('animate-pulse');
+    }
+}
+
+function closeLetterModal() {
+    const card = document.getElementById('letterCard');
+    gsap.to(card, { scale: 0.8, opacity: 0, duration: 0.3, onComplete: () => {
+        document.getElementById('letterModal').classList.add('hidden');
+    }});
+}
+
+/* =========================================================================
+   5. START UNBOXING & GRAND FINALE ANIMATION
+   ========================================================================= */
+document.getElementById('startBtn').addEventListener('click', () => {
+    soundEngine.start();
+    document.getElementById('audioToggleBtn').classList.remove('hidden');
+    document.getElementById('narrationBtn').classList.remove('hidden');
+    document.getElementById('volumeControlBox').classList.remove('hidden');
+
+    gsap.to('#startScreen', {
+        opacity: 0, scale: 0.85, duration: 0.8, ease: "power2.in", onComplete: () => {
+            document.getElementById('startScreen').classList.add('hidden');
+        }
+    });
+
+    gsap.to(bouquetGroup.position, { y: -0.3, duration: 3.0, ease: "back.out(1.2)", delay: 0.3 });
+    gsap.to(bouquetGroup.scale, { x: 1, y: 1, z: 1, duration: 3.0, ease: "back.out(1.2)", delay: 0.3 });
+
+    flowerHeadMeshes.forEach((fHead, idx) => {
+        fHead.scale.set(0.01, 0.01, 0.01);
+        gsap.to(fHead.scale, {
+            x: 1, y: 1, z: 1,
+            duration: 1.8,
+            delay: 0.8 + idx * 0.15,
+            ease: "elastic.out(1, 0.5)",
+            onStart: () => soundEngine.playSparkle()
+        });
+    });
+
+    setTimeout(() => { goToScene(1); }, 3400);
+});
+
+function triggerGrandFinale() {
+    soundEngine.playHeartbeat();
+    soundEngine.speakNarration("I love you. You are the most beautiful chapter of my life. My heart will always choose you.");
+
+    gsap.to('#scene6', { opacity: 0, y: 20, duration: 0.5, onComplete: () => {
+        document.getElementById('scene6').classList.add('hidden');
+    }});
+
+    gsap.to(camera.position, { x: 0, y: 0.5, z: 2.8, duration: 2.5, ease: "power3.inOut" });
+
+    setTimeout(() => {
+        soundEngine.playSparkle();
+
+        gsap.to(bouquetGroup.scale, { x: 0, y: 0, z: 0, duration: 1 });
+        heartGroup.position.x = 0;
+        heartGroup.visible = true;
+        gsap.fromTo(heartGroup.scale, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1, duration: 1.5, ease: "back.out(1.7)" });
+
+        // Confetti Burst Frame Loop
+        const duration = 5 * 1000;
+        const end = Date.now() + duration;
+
+        (function frame() {
+            confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#f43f5e', '#facc15', '#ffffff'] });
+            confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#f43f5e', '#facc15', '#ffffff'] });
+
+            if (Date.now() < end) requestAnimationFrame(frame);
+        })();
+
+        const finaleScreen = document.getElementById('finaleScreen');
+        finaleScreen.classList.remove('hidden');
+
+        gsap.to('#finaleTitle', { opacity: 1, scale: 1, duration: 1.2, delay: 0.5 });
+        gsap.to('#finaleMessages', { opacity: 1, y: 0, duration: 1.2, delay: 1.5 });
+        gsap.to('#finaleSignature', { opacity: 1, y: 0, duration: 1.5, delay: 2.8 });
+
+    }, 2000);
+}
+
+/* =========================================================================
+   6. INTERACTIVE RAYCASTING & TOUCH DRAG ROTATION
+   ========================================================================= */
+let isDragging = false;
+let previousMousePosition = { x: 0, y: 0 };
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const tooltip = document.getElementById('flowerTooltip');
+const tooltipName = document.getElementById('tooltipName');
+const tooltipMeaning = document.getElementById('tooltipMeaning');
+let hoveredFlower = null;
+
+function onPointerDown(e) {
+    isDragging = true;
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+    previousMousePosition = { x, y };
+}
+
+function onPointerMove(e) {
+    const x = e.touches ? e.touches[0].clientX : e.clientX;
+    const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+    if (isDragging && bouquetGroup.scale.x > 0.5) {
+        const deltaX = x - previousMousePosition.x;
+        bouquetGroup.rotation.y += deltaX * 0.008;
+        previousMousePosition = { x, y };
+    }
+
+    mouse.x = (x / window.innerWidth) * 2 - 1;
+    mouse.y = -(y / window.innerHeight) * 2 + 1;
+
+    // Sparkle Particle Cursor Trail
+    if (Math.random() > 0.65) {
+        const particle = document.createElement('div');
+        particle.className = 'cursor-particle';
+        particle.style.left = `${x}px`;
+        particle.style.top = `${y}px`;
+        particle.style.width = particle.style.height = `${Math.random() * 8 + 4}px`;
+        particle.style.setProperty('--dx', `${(Math.random() - 0.5) * 30}px`);
+        particle.style.setProperty('--dy', `${(Math.random() - 0.5) * 30}px`);
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 800);
+    }
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(interactiveFlowers, true);
+
+    if (intersects.length > 0) {
+        let obj = intersects[0].object;
+        while (obj.parent && !obj.userData.type) { obj = obj.parent; }
+
+        if (obj && obj.userData.type === 'flower') {
+            if (hoveredFlower !== obj) {
+                if (hoveredFlower) gsap.to(hoveredFlower.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+                hoveredFlower = obj;
+                gsap.to(hoveredFlower.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 0.3 });
+                soundEngine.playSparkle();
+            }
+
+            tooltipName.textContent = obj.userData.name;
+            tooltipMeaning.textContent = `"${obj.userData.meaning}"`;
+            tooltip.style.left = `${x}px`;
+            tooltip.style.top = `${y}px`;
+            tooltip.style.opacity = '1';
+            return;
+        }
+    }
+
+    if (hoveredFlower) {
+        gsap.to(hoveredFlower.scale, { x: 1, y: 1, z: 1, duration: 0.3 });
+        hoveredFlower = null;
+    }
+    tooltip.style.opacity = '0';
+}
+
+function onPointerUp() { isDragging = false; }
+
+window.addEventListener('mousedown', onPointerDown);
+window.addEventListener('mousemove', onPointerMove);
+window.addEventListener('mouseup', onPointerUp);
+
+window.addEventListener('touchstart', onPointerDown, { passive: true });
+window.addEventListener('touchmove', onPointerMove, { passive: true });
+window.addEventListener('touchend', onPointerUp);
+
+/* =========================================================================
+   7. CLOCK & EVENT LISTENERS
+   ========================================================================= */
+const startTime = Date.now();
+setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const hrs = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+    const mins = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+    const secs = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('ourMomentClock').textContent = `Our Moment: ${hrs}:${mins}:${secs}`;
+}, 1000);
+
+document.getElementById('audioToggleBtn').addEventListener('click', () => {
+    soundEngine.togglePlay();
+    const icon = document.getElementById('audioIcon');
+    icon.className = soundEngine.isPlaying ? 'fa-solid fa-music text-sm' : 'fa-solid fa-volume-xmark text-sm';
+});
+
+document.getElementById('narrationBtn').addEventListener('click', () => {
+    const active = soundEngine.toggleNarration();
+    const icon = document.getElementById('narrationIcon');
+    icon.className = active ? 'fa-solid fa-microphone text-sm' : 'fa-solid fa-microphone-slash text-sm text-rose-400';
+});
+
+document.getElementById('volumeSlider').addEventListener('input', (e) => {
+    soundEngine.setVolume(parseFloat(e.target.value));
+});
+
+window.addEventListener('resize', () => {
+    updateLayout();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// 3D Render Loop
+const clock = new THREE.Clock();
+function animate() {
+    requestAnimationFrame(animate);
+    const elapsedTime = clock.getElapsedTime();
+
+    if (bouquetGroup.position.y > -2 && !isDragging) {
+        bouquetGroup.rotation.y += 0.0025;
+        bouquetGroup.position.y = -0.3 + Math.sin(elapsedTime * 1.2) * 0.04;
+    }
+
+    if (heartGroup.visible) {
+        heartGroup.rotation.y += 0.008;
+    }
+
+    renderer.render(scene, camera);
+}
+animate();
