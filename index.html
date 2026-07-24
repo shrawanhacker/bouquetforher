@@ -390,7 +390,7 @@
     <!-- JAVASCRIPT ENGINE -->
     <script>
         /* =========================================================================
-           1. AUDIO ENGINE (Music Stream, Native Web Audio Synthesizer & Web Speech TTS)
+           1. AUDIO ENGINE (Background Music Stream & Web Speech TTS)
            ========================================================================= */
         class RomanticAudioEngine {
             constructor() {
@@ -398,23 +398,20 @@
                 this.bgAudio = null;
                 this.isPlaying = false;
                 this.isMuted = false;
-                this.volume = 0.4;
+                this.volume = 0.35;
                 this.narrationEnabled = true;
                 this.synth = window.speechSynthesis || null;
-                this.synthInterval = null;
                 this.initAudioEngine();
             }
 
             initAudioEngine() {
-                // Royalty-Free Classical Audio Stream
-                this.bgAudio = new Audio('https://upload.wikimedia.org/wikipedia/commons/2/22/Canon_in_D_major_-_Pachelbel.ogg');
+                this.bgAudio = new Audio('https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-piano-112181.mp3');
                 this.bgAudio.loop = true;
                 this.bgAudio.volume = this.volume;
                 this.bgAudio.crossOrigin = "anonymous";
             }
 
             start() {
-                // Initialize Web Audio Context
                 if (!this.audioCtx) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
                     this.audioCtx = new AudioCtx();
@@ -422,19 +419,11 @@
                 if (this.audioCtx.state === 'suspended') {
                     this.audioCtx.resume();
                 }
-
-                // Mark playing TRUE immediately so Web Audio generators run with 100% reliability
-                this.isPlaying = true;
-
-                // Start native procedural synthesized piano & string music immediately
-                this.startSynthesizedAmbient();
-
-                // Also trigger HTML5 Audio stream
-                if (this.bgAudio) {
-                    this.bgAudio.play().catch(e => {
-                        console.log("Stream fallback active via WebAudio synth");
-                    });
-                }
+                this.bgAudio.play().then(() => {
+                    this.isPlaying = true;
+                }).catch(() => {
+                    this.isPlaying = true;
+                });
             }
 
             setVolume(val) {
@@ -500,55 +489,6 @@
                 gain.connect(this.audioCtx.destination);
                 osc.start(this.audioCtx.currentTime);
                 osc.stop(this.audioCtx.currentTime + 0.35);
-            }
-
-            startSynthesizedAmbient() {
-                if (this.synthInterval) return;
-
-                // Warm Romantic Chord Progression: Ebmaj9 -> Cm9 -> Abmaj7 -> Bb11
-                const chordsBase = [
-                    [155.56, 196.00, 233.08, 311.13, 392.00],
-                    [130.81, 155.56, 196.00, 261.63, 311.13],
-                    [103.83, 130.81, 155.56, 207.65, 261.63],
-                    [116.54, 146.83, 174.61, 233.08, 293.66]
-                ];
-                let index = 0;
-
-                const playArpeggio = () => {
-                    if (!this.isPlaying || !this.audioCtx) return;
-                    const chord = chordsBase[index];
-
-                    chord.forEach((freq, i) => {
-                        const now = this.audioCtx.currentTime;
-                        const startTime = now + i * 0.22;
-
-                        const osc = this.audioCtx.createOscillator();
-                        const gain = this.audioCtx.createGain();
-                        const filter = this.audioCtx.createBiquadFilter();
-
-                        osc.type = i % 2 === 0 ? 'sine' : 'triangle';
-                        osc.frequency.setValueAtTime(freq, startTime);
-
-                        filter.type = 'lowpass';
-                        filter.frequency.setValueAtTime(1000, startTime);
-
-                        gain.gain.setValueAtTime(0, startTime);
-                        gain.gain.linearRampToValueAtTime(0.06 * this.volume, startTime + 0.1);
-                        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 3.2);
-
-                        osc.connect(filter);
-                        filter.connect(gain);
-                        gain.connect(this.audioCtx.destination);
-
-                        osc.start(startTime);
-                        osc.stop(startTime + 3.4);
-                    });
-
-                    index = (index + 1) % chordsBase.length;
-                };
-
-                playArpeggio();
-                this.synthInterval = setInterval(playArpeggio, 3200);
             }
         }
 
