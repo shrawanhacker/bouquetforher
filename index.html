@@ -156,67 +156,6 @@
             transition: opacity 0.3s ease, transform 0.3s ease;
             transform: translate(-50%, -130%);
         }
-
-        /* Floating Animation for Smaller Message Box */
-        @keyframes floatModalCard {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
-        .animate-floating {
-            animation: floatModalCard 3.5s ease-in-out infinite;
-        }
-
-        /* Scaled Down Compact Envelope Styling */
-        .envelope-wrapper {
-            perspective: 800px;
-        }
-        .envelope {
-            width: 110px;
-            height: 70px;
-            position: relative;
-            background: #9f1239;
-            border-radius: 6px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.6), 0 0 15px rgba(244,63,94,0.35);
-            cursor: pointer;
-            transition: transform 0.4s ease;
-        }
-        .envelope-flap {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            border-left: 55px solid transparent;
-            border-right: 55px solid transparent;
-            border-top: 40px solid #be123c;
-            transform-origin: top;
-            transition: transform 0.5s ease;
-            z-index: 3;
-        }
-        .envelope.open .envelope-flap {
-            transform: rotateX(180deg);
-            z-index: 1;
-        }
-        .envelope-paper {
-            position: absolute;
-            bottom: 5px;
-            left: 8px;
-            right: 8px;
-            height: 55px;
-            background: #fffdfa;
-            border-radius: 4px;
-            padding: 6px;
-            color: #881337;
-            font-family: 'Playfair Display', serif;
-            font-size: 0.65rem;
-            transition: transform 0.5s ease;
-            z-index: 2;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
-        }
-        .envelope.open .envelope-paper {
-            transform: translateY(-40px) scale(1.05);
-            z-index: 4;
-        }
     </style>
 </head>
 <body class="h-full w-full silk-bg relative text-white overflow-hidden">
@@ -375,19 +314,19 @@
 
     </div>
 
-    <!-- Letter Unfolding Floating Modal Overlay (Smaller & Floating) -->
+    <!-- Love Note Modal Overlay (Circular Envelope Style) -->
     <div id="letterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md pointer-events-auto">
-        <div class="glass-panel rounded-[1.8rem] p-5 sm:p-6 max-w-[280px] sm:max-w-xs w-full text-center relative border-amber-300/40 transform transition-all scale-90 opacity-0 animate-floating" id="letterCard">
-            <button onclick="closeLetterModal()" class="absolute top-3.5 right-3.5 text-pink-200/60 hover:text-white"><i class="fa-solid fa-xmark text-base"></i></button>
-            <div class="w-10 h-10 rounded-full bg-rose-500/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-3 text-rose-400 text-lg">
+        <div class="glass-panel rounded-3xl p-6 sm:p-8 max-w-xs sm:max-w-sm w-full text-center relative border-amber-300/40 transform transition-all scale-95 opacity-0" id="letterCard">
+            <button onclick="closeLetterModal()" class="absolute top-4 right-4 text-pink-200/60 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-rose-500/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-3 text-rose-400 text-lg">
                 <i class="fa-solid fa-envelope-open-text"></i>
             </div>
-            <div id="typewriterText" class="font-serif italic text-xs sm:text-sm text-pink-100 mb-5 leading-relaxed min-h-[50px]"></div>
-            <button onclick="closeLetterModal()" class="glass-btn px-5 py-2 rounded-full text-[11px] font-medium">Keep In My Heart</button>
+            <p id="letterContent" class="font-serif italic text-xs sm:text-base text-pink-100 mb-5 leading-relaxed"></p>
+            <button onclick="closeLetterModal()" class="glass-btn px-6 py-2 rounded-full text-xs font-medium">Keep In My Heart</button>
         </div>
     </div>
 
-    <!-- JAVASCRIPT ENGINE -->
+    <!-- MASTER JAVASCRIPT ENGINE -->
     <script>
         /* =========================================================================
            1. AUDIO ENGINE (Background Music Stream & Web Speech TTS)
@@ -760,7 +699,7 @@
         updateLayout();
 
         /* =========================================================================
-           4. STORY CONTROL & ELEGANT COMPACT ENVELOPE LOVE NOTES SYSTEM
+           4. STORY CONTROL & CIRCULAR BOUNCE ENVELOPE LOVE NOTES SYSTEM
            ========================================================================= */
         const loveLetters = [
             "I smile every time I think of you.",
@@ -804,77 +743,54 @@
         }
 
         function spawnInteractiveEnvelopes() {
-            document.querySelectorAll('.envelope-wrapper').forEach(e => e.remove());
+            // Clear existing if re-entering
+            document.querySelectorAll('.love-letter-btn').forEach(e => e.remove());
 
             loveLetters.forEach((msg, idx) => {
                 setTimeout(() => {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'envelope-wrapper fixed z-30 cursor-pointer pointer-events-auto transform hover:scale-110 transition-transform';
+                    const letterEl = document.createElement('div');
+                    letterEl.className = 'love-letter-btn fixed z-30 cursor-pointer pointer-events-auto glass-panel w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-rose-300 hover:scale-125 transition-transform shadow-lg border-amber-300/50 animate-bounce';
                     
-                    // Position scaled-down envelopes neatly on left side so they never cover UI panel
-                    const posX = 8 + (idx % 3) * 16 + (Math.random() * 4);
-                    const posY = 18 + Math.floor(idx / 3) * 25 + (Math.random() * 4);
-                    wrap.style.left = `${posX}%`;
-                    wrap.style.top = `${posY}%`;
+                    const posX = 12 + Math.random() * 76;
+                    const posY = 15 + Math.random() * 45;
+                    letterEl.style.left = `${posX}%`;
+                    letterEl.style.top = `${posY}%`;
+                    letterEl.innerHTML = '<i class="fa-solid fa-envelope text-xs sm:text-sm"></i>';
 
-                    wrap.innerHTML = `
-                        <div class="envelope" id="env-${idx}">
-                            <div class="envelope-flap"></div>
-                            <div class="envelope-paper flex items-center justify-center text-center">
-                                <i class="fa-solid fa-heart text-rose-500 text-sm"></i>
-                            </div>
-                        </div>
-                    `;
-
-                    wrap.onclick = () => openEnvelopeNote(idx, wrap, msg);
-                    document.body.appendChild(wrap);
-                }, idx * 200);
+                    letterEl.onclick = () => openEnvelopeNote(msg, idx, letterEl);
+                    document.body.appendChild(letterEl);
+                }, idx * 350);
             });
         }
 
-        function openEnvelopeNote(idx, element, messageText) {
+        function openEnvelopeNote(messageText, idx, element) {
             soundEngine.playSparkle();
             soundEngine.speakNarration(messageText);
-            const env = document.getElementById(`env-${idx}`);
-            env.classList.add('open');
 
-            setTimeout(() => {
-                const modal = document.getElementById('letterModal');
-                const card = document.getElementById('letterCard');
-                const textContainer = document.getElementById('typewriterText');
-                
-                textContainer.textContent = "";
-                modal.classList.remove('hidden');
-                gsap.to(card, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" });
+            const modal = document.getElementById('letterModal');
+            const card = document.getElementById('letterCard');
+            document.getElementById('letterContent').textContent = `"${messageText}"`;
 
-                // Typewriter Handwriting Effect
-                let charIdx = 0;
-                const typeInterval = setInterval(() => {
-                    if (charIdx < messageText.length) {
-                        textContainer.textContent += messageText.charAt(charIdx);
-                        charIdx++;
-                    } else {
-                        clearInterval(typeInterval);
-                    }
-                }, 35);
+            modal.classList.remove('hidden');
+            gsap.to(card, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(1.5)" });
 
-                if (element) {
-                    gsap.to(element, { scale: 0, opacity: 0, duration: 0.4, delay: 0.4, onComplete: () => element.remove() });
-                }
+            if (element) {
+                gsap.to(element, { scale: 0, opacity: 0, duration: 0.3, onComplete: () => element.remove() });
+            }
 
-                openedLetterIndices.add(idx);
-                const total = loveLetters.length;
-                const current = openedLetterIndices.size;
-                const scene4Btn = document.getElementById('scene4NextBtn');
+            // Track opened letters to unlock Scene 4 Next Button
+            openedLetterIndices.add(idx);
+            const total = loveLetters.length;
+            const current = openedLetterIndices.size;
+            const scene4Btn = document.getElementById('scene4NextBtn');
 
-                if (current < total) {
-                    scene4Btn.textContent = `Open all message notes (${current}/${total})`;
-                } else {
-                    scene4Btn.disabled = false;
-                    scene4Btn.innerHTML = '<span>Next Whisper ❤️</span>';
-                    scene4Btn.classList.add('animate-pulse');
-                }
-            }, 500);
+            if (current < total) {
+                scene4Btn.textContent = `Open all message notes (${current}/${total})`;
+            } else {
+                scene4Btn.disabled = false;
+                scene4Btn.innerHTML = '<span>Next Whisper ❤️</span>';
+                scene4Btn.classList.add('animate-pulse');
+            }
         }
 
         function closeLetterModal() {
